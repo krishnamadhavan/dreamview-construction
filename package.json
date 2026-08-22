@@ -1,0 +1,20 @@
+{
+  "name": "dreamview",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter @dreamview/* dev",
+    "dev:api": "pnpm --filter @dreamview/api dev",
+    "dev:web": "pnpm --filter @dreamview/web dev",
+    "build": "pnpm --filter @dreamview/web build && pnpm --filter @dreamview/api build",
+    "start": "pnpm --filter @dreamview/api start",
+    "typecheck": "pnpm --filter @dreamview/* typecheck",
+    "db:migrate": "pnpm --filter @dreamview/api db:migrate"
+  },
+  "packageManager": "pnpm@10.19.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}
