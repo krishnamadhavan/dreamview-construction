@@ -1,18 +1,19 @@
-# Dreamview Admin
+# Dreamview
 
-Admin panel for a construction company site. Start with **projects** (title, description, images). More content types can be added later without changing the storage or Docker setup.
+Public construction site and admin panel. Start with **projects** (title, description, images). More content types can be added later without changing the storage or Docker setup.
 
-**Stack:** Node.js, TypeScript, Fastify, React, PostgreSQL, S3-compatible object storage.
+**Stack:** Node.js, TypeScript, Fastify, React, PostgreSQL, Cloudinary.
 
 Docker runs the app only. There is **no local database container** — point `DATABASE_URL` at Neon, Supabase, RDS, or any hosted Postgres.
 
 ## What you get
 
-- Email/password admin session
-- Project CRUD (`draft` / `published`)
+- Public home and projects gallery (published work only)
+- Email/password admin session at `/admin`
+- Project CRUD (`draft` / `scheduled` / `published`) with optional future publish time
 - Multi-image upload, alt text, drag-to-reorder, delete
-- Images stored in S3 / R2 / Spaces (not on disk, not in Postgres)
-- Production image: API serves the built admin UI
+- Images stored on Cloudinary (not on disk, not in Postgres)
+- Production image: API serves the built site + admin UI
 
 ## Setup
 
@@ -27,17 +28,11 @@ Fill in:
 | `DATABASE_URL` | Hosted Postgres. Use `?sslmode=require` for most clouds. |
 | `SESSION_SECRET` | At least 32 random characters (`openssl rand -hex 32`) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | First admin, created on boot if the table is empty |
-| `S3_*` | Bucket credentials and a public URL for serving images |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Cloudinary account credentials |
 
-### Object storage
+### Image storage
 
-Works with any S3 API:
-
-- **Cloudflare R2:** set `S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com`, `S3_REGION=auto`, `S3_FORCE_PATH_STYLE=true`, and `S3_PUBLIC_URL` to your R2 public/custom domain.
-- **AWS S3:** leave `S3_ENDPOINT` empty. Set `S3_PUBLIC_URL` to the virtual-host URL or a CloudFront domain (`https://bucket.s3.region.amazonaws.com`).
-- **DigitalOcean Spaces:** set the regional endpoint and `S3_FORCE_PATH_STYLE=true`.
-
-The app writes objects to `projects/<project-id>/…`. Make that prefix publicly readable (bucket policy or a CDN). Do not enable ACLs on the PutObject call.
+Uploads go to Cloudinary under `projects/<project-id>/…`. `project_images.storage_key` is the Cloudinary public id; `url` is the `secure_url` returned on upload. Delete removes that public id (and invalidates the CDN).
 
 ### Local development
 
@@ -46,7 +41,9 @@ pnpm install
 pnpm dev
 ```
 
-- Admin UI: [http://localhost:5173](http://localhost:5173)
+- Public site: [http://localhost:5173](http://localhost:5173)
+- Projects: [http://localhost:5173/projects](http://localhost:5173/projects)
+- Admin: [http://localhost:5173/admin](http://localhost:5173/admin)
 - API: [http://localhost:3000](http://localhost:3000)
 
 The Vite dev server proxies `/api` to the API. Migrations and the first admin run when the API starts.
@@ -57,22 +54,24 @@ The Vite dev server proxies `/api` to the API. Migrations and the first admin ru
 docker compose up --build
 ```
 
-Then open [http://localhost:3000](http://localhost:3000). The container talks to the hosted database and object store from `.env`.
+Then open [http://localhost:3000](http://localhost:3000). The container talks to the hosted database and Cloudinary from `.env`.
 
 ## API
 
-All project routes require a session cookie from `POST /api/auth/login`.
+Admin project routes require a session cookie from `POST /api/auth/login`. The public list does not.
 
 | Method | Path | Notes |
 |---|---|---|
+| `GET` | `/api/public/projects` | Live projects (`published`, or `scheduled` whose time has passed) |
+| `GET` | `/api/public/projects/:slug` | One live project |
 | `POST` | `/api/auth/login` | `{ email, password }` |
 | `POST` | `/api/auth/logout` | |
 | `GET` | `/api/auth/me` | |
 | `GET` | `/api/projects` | |
-| `POST` | `/api/projects` | `{ title, description, status }` |
+| `POST` | `/api/projects` | `{ title, description, status, publishAt? }` |
 | `GET` | `/api/projects/:id` | |
 | `PATCH` | `/api/projects/:id` | |
-| `DELETE` | `/api/projects/:id` | Also deletes objects in storage |
+| `DELETE` | `/api/projects/:id` | Also deletes Cloudinary assets |
 | `POST` | `/api/projects/:id/images` | `multipart/form-data`, field `images` |
 | `PATCH` | `/api/projects/:id/images/:imageId` | `{ alt }` |
 | `PUT` | `/api/projects/:id/images/order` | `{ imageIds }` |
@@ -81,11 +80,13 @@ All project routes require a session cookie from `POST /api/auth/login`.
 
 Images: JPEG, PNG, WebP, AVIF · 10 MB each · 24 per project.
 
+The API process runs a publish job every 30 seconds: `scheduled` rows whose `publishAt` is due become `published`. The public queries also check the clock, so a due project appears even if the job has not flipped the row yet.
+
 ## Layout
 
 ```
-apps/api    Fastify + Drizzle + S3
-apps/web    React admin (Vite + Tailwind)
+apps/api    Fastify + Drizzle + Cloudinary
+apps/web    Public site + admin (Vite + Tailwind)
 ```
 
 Content types later can follow the same pattern: a table, a module under `apps/api/src/modules`, and a page under `apps/web/src/pages`.

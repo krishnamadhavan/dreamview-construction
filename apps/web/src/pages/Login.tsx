@@ -9,7 +9,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (ready && admin) return <Navigate to="/" replace />;
+  if (ready && admin) return <Navigate to="/admin" replace />;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -17,8 +17,8 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign in");
+    } catch {
+      setError("Invalid email or password");
     } finally {
       setBusy(false);
     }

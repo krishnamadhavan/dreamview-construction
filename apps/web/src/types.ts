@@ -1,4 +1,4 @@
-export type ProjectStatus = "draft" | "published";
+export type ProjectStatus = "draft" | "scheduled" | "published";
 
 export type ProjectImage = {
   id: string;
@@ -18,6 +18,7 @@ export type Project = {
   slug: string;
   description: string;
   status: ProjectStatus;
+  publishAt: string | null;
   createdAt: string;
   updatedAt: string;
   images: ProjectImage[];
@@ -26,6 +27,21 @@ export type Project = {
 export type Admin = {
   id: string;
   email: string;
+};
+
+export type PublicProjectImage = {
+  id: string;
+  url: string;
+  alt: string;
+  sortOrder: number;
+};
+
+export type PublicProject = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  images: PublicProjectImage[];
 };
 
 export type ApiError = {

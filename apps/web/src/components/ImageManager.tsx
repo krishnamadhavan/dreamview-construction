@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { api } from "../api";
+import { MediaImage } from "./MediaImage";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "../toast";
 import type { ProjectImage } from "../types";
 
@@ -17,9 +19,13 @@ export function ImageManager({
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [pendingRemove, setPendingRemove] = useState<ProjectImage | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const removingLock = useRef(false);
 
   async function upload(fileList: FileList | File[]) {
-    const files = Array.from(fileList).filter((file) => file.type.startsWith("image/"));
+    const allowed = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+    const files = Array.from(fileList).filter((file) => allowed.has(file.type));
     if (files.length === 0) {
       toast.push("Choose JPEG, PNG, WebP, or AVIF files", "err");
       return;
@@ -36,13 +42,21 @@ export function ImageManager({
     }
   }
 
-  async function remove(image: ProjectImage) {
+  async function confirmRemove() {
+    if (!pendingRemove || removingLock.current) return;
+    removingLock.current = true;
+    setRemoving(true);
+    const image = pendingRemove;
     try {
       await api.deleteImage(projectId, image.id);
       onChange(images.filter((item) => item.id !== image.id));
+      setPendingRemove(null);
       toast.push("Image removed");
     } catch (error) {
       toast.push(error instanceof Error ? error.message : "Could not remove image", "err");
+    } finally {
+      removingLock.current = false;
+      setRemoving(false);
     }
   }
 
@@ -88,7 +102,7 @@ export function ImageManager({
         <div>
           <h2 className="display text-2xl">Images</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Stored in object storage. First image is the cover. Drag to reorder.
+            Stored on Cloudinary. First image is the cover. Drag to reorder.
           </p>
         </div>
         <span className="text-xs tracking-wide text-ink-soft uppercase">{images.length} / 24</span>
@@ -138,7 +152,12 @@ export function ImageManager({
               className="overflow-hidden rounded-lg border border-line bg-white"
             >
               <div className="relative aspect-[4/3] bg-sand">
-                <img src={image.url} alt={image.alt || image.storageKey} className="h-full w-full object-cover" />
+                <MediaImage
+                  url={image.url}
+                  alt={image.alt || image.storageKey}
+                  fit="thumb"
+                  className="h-full w-full object-cover"
+                />
                 {index === 0 && (
                   <span className="absolute top-3 left-3 rounded-full bg-ink px-2 py-0.5 text-[10px] tracking-wide text-paper uppercase">
                     Cover
@@ -156,16 +175,34 @@ export function ImageManager({
                   <span className="text-[11px] text-ink-soft">{Math.round(image.sizeBytes / 1024)} KB</span>
                   <button
                     type="button"
-                    onClick={() => void remove(image)}
-                    className="text-xs text-clay hover:text-clay-dark"
+                    disabled={removing}
+                    onClick={() => {
+                      if (removingLock.current) return;
+                      setPendingRemove(image);
+                    }}
+                    className="text-xs text-clay hover:text-clay-dark disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Remove
+                    {removing && pendingRemove?.id === image.id ? "Removing…" : "Remove"}
                   </button>
                 </div>
               </div>
             </li>
           ))}
         </ul>
+      )}
+
+      {pendingRemove && (
+        <ConfirmDialog
+          title="Remove this image?"
+          body="It will be deleted from Cloudinary and this project. This cannot be undone."
+          confirmLabel="Remove image"
+          busy={removing}
+          onClose={() => {
+            if (removingLock.current) return;
+            setPendingRemove(null);
+          }}
+          onConfirm={() => void confirmRemove()}
+        />
       )}
     </section>
   );

@@ -13,8 +13,10 @@ import { loadConfig } from "./config.js";
 import { sql } from "./db/client.js";
 import { AppError, unauthorized } from "./lib/errors.js";
 import { authRoutes } from "./modules/auth/routes.js";
+import { cronRoutes } from "./modules/projects/cron-routes.js";
+import { publicProjectRoutes } from "./modules/projects/public-routes.js";
 import { projectRoutes } from "./modules/projects/routes.js";
-import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_PROJECT, storageReady } from "./storage/s3.js";
+import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_PROJECT, storageReady } from "./storage/cloudinary.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -101,11 +103,13 @@ export async function buildApp() {
     }
 
     request.log.error(error);
-    const message = config.isProd ? "Unexpected error" : error.message;
     return reply.code(statusCode && statusCode >= 400 ? statusCode : 500).send({
-      error: { code: "INTERNAL_ERROR", message },
+      error: { code: "INTERNAL_ERROR", message: "Unexpected error" },
     });
   });
+
+  // Liveness only. Render health checks must not wait on Neon or Cloudinary.
+  app.get("/api/live", async () => ({ ok: true }));
 
   app.get("/api/health", async () => {
     let database = false;
@@ -121,6 +125,8 @@ export async function buildApp() {
   });
 
   await app.register(authRoutes);
+  await app.register(cronRoutes);
+  await app.register(publicProjectRoutes);
   await app.register(projectRoutes);
 
   if (config.isProd) {

@@ -1,7 +1,6 @@
 import { access, readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadConfig } from "../config.js";
 import { sql } from "./client.js";
 
 async function resolveMigrationsDir(): Promise<string> {
@@ -19,7 +18,6 @@ async function resolveMigrationsDir(): Promise<string> {
 }
 
 export async function runMigrations(): Promise<void> {
-  loadConfig();
   await sql`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       id text PRIMARY KEY,
