@@ -1,7 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { unauthorized } from "../../lib/errors.js";
+import { AppError, unauthorized } from "../../lib/errors.js";
 import { authenticate } from "./service.js";
+
+const LOGIN_FAILED = "Invalid email or password";
 
 const loginBody = z.object({
   email: z.string().email(),
@@ -29,10 +31,18 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   app.post("/api/auth/login", async (request, reply) => {
     throttle(request.ip);
     const body = loginBody.parse(request.body);
-    const admin = await authenticate(body.email, body.password);
-    request.session.set("adminId", admin.id);
-    request.session.set("email", admin.email);
-    return reply.send({ admin });
+    try {
+      const admin = await authenticate(body.email, body.password);
+      request.session.set("adminId", admin.id);
+      request.session.set("email", admin.email);
+      return reply.send({ admin });
+    } catch (error) {
+      if (error instanceof AppError && error.statusCode === 401) {
+        throw unauthorized(LOGIN_FAILED);
+      }
+      request.log.error(error);
+      throw unauthorized(LOGIN_FAILED);
+    }
   });
 
   app.post("/api/auth/logout", async (request, reply) => {

@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { integer, pgEnum, pgTable, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
 
-export const projectStatusEnum = pgEnum("project_status", ["draft", "published"]);
+export const projectStatusEnum = pgEnum("project_status", ["draft", "scheduled", "published"]);
 
 export const admins = pgTable("admins", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -18,10 +18,14 @@ export const projects = pgTable(
     slug: text("slug").notNull().unique(),
     description: text("description").notNull().default(""),
     status: projectStatusEnum("status").notNull().default("draft"),
+    publishAt: timestamp("publish_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("projects_status_idx").on(table.status)],
+  (table) => [
+    index("projects_status_idx").on(table.status),
+    index("projects_scheduled_publish_idx").on(table.publishAt),
+  ],
 );
 
 export const projectImages = pgTable(

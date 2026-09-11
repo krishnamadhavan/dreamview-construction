@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ImageManager } from "../components/ImageManager";
+import { fromDatetimeLocal, localTimeZone, toDatetimeLocal } from "../lib/datetime";
 import { useToast } from "../toast";
 import type { Project, ProjectImage, ProjectStatus } from "../types";
 
@@ -15,6 +16,7 @@ export function ProjectEditorPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("draft");
+  const [publishLocal, setPublishLocal] = useState("");
   const [images, setImages] = useState<ProjectImage[]>([]);
   const [slug, setSlug] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(isNew ? null : id);
@@ -30,7 +32,7 @@ export function ProjectEditorPage() {
       .then(({ project }) => applyProject(project))
       .catch((error) => {
         toast.push(error instanceof Error ? error.message : "Project not found", "err");
-        navigate("/");
+        navigate("/admin");
       })
       .finally(() => setLoaded(true));
   }, [id, isNew, navigate, toast]);
@@ -40,6 +42,7 @@ export function ProjectEditorPage() {
     setTitle(project.title);
     setDescription(project.description);
     setStatus(project.status);
+    setPublishLocal(toDatetimeLocal(project.publishAt));
     setImages(project.images);
     setSlug(project.slug);
   }
@@ -49,12 +52,22 @@ export function ProjectEditorPage() {
     setSaving(true);
     try {
       if (!projectId) {
-        const { project } = await api.createProject({ title, description, status });
+        const { project } = await api.createProject({
+          title,
+          description,
+          status,
+          publishAt: status === "scheduled" ? fromDatetimeLocal(publishLocal) : status === "published" ? new Date().toISOString() : null,
+        });
         applyProject(project);
         toast.push("Project created");
-        navigate(`/projects/${project.id}`, { replace: true });
+        navigate(`/admin/projects/${project.id}`, { replace: true });
       } else {
-        const { project } = await api.updateProject(projectId, { title, description, status });
+        const { project } = await api.updateProject(projectId, {
+          title,
+          description,
+          status,
+          publishAt: status === "scheduled" ? fromDatetimeLocal(publishLocal) : status === "draft" ? null : undefined,
+        });
         applyProject({ ...project, images });
         toast.push("Project saved");
       }
@@ -71,7 +84,7 @@ export function ProjectEditorPage() {
     try {
       await api.deleteProject(projectId);
       toast.push("Project deleted");
-      navigate("/");
+      navigate("/admin");
     } catch (error) {
       toast.push(error instanceof Error ? error.message : "Could not delete project", "err");
       setDeleting(false);
@@ -84,7 +97,7 @@ export function ProjectEditorPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link to="/" className="text-sm text-ink-soft hover:text-ink">
+      <Link to="/admin" className="text-sm text-ink-soft hover:text-ink">
         ← Projects
       </Link>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
@@ -127,8 +140,8 @@ export function ProjectEditorPage() {
         </label>
         <fieldset className="text-sm">
           <legend>Status</legend>
-          <div className="mt-2 flex gap-3">
-            {(["draft", "published"] as const).map((value) => (
+          <div className="mt-2 flex flex-wrap gap-3">
+            {(["draft", "scheduled", "published"] as const).map((value) => (
               <label
                 key={value}
                 className={`cursor-pointer rounded-md border px-4 py-2 capitalize ${
@@ -140,7 +153,13 @@ export function ProjectEditorPage() {
                   name="status"
                   value={value}
                   checked={status === value}
-                  onChange={() => setStatus(value)}
+                  onChange={() => {
+                    setStatus(value);
+                    if (value === "scheduled" && !publishLocal) {
+                      const soon = new Date(Date.now() + 60 * 60 * 1000);
+                      setPublishLocal(toDatetimeLocal(soon.toISOString()));
+                    }
+                  }}
                   className="sr-only"
                 />
                 {value}
@@ -148,6 +167,21 @@ export function ProjectEditorPage() {
             ))}
           </div>
         </fieldset>
+        {status === "scheduled" && (
+          <label className="block text-sm">
+            Publish at
+            <input
+              type="datetime-local"
+              required
+              value={publishLocal}
+              onChange={(event) => setPublishLocal(event.target.value)}
+              className="mt-2 w-full max-w-sm rounded-md border border-line bg-white px-3 py-2.5 outline-none focus:border-clay"
+            />
+            <span className="mt-2 block text-xs text-ink-soft">
+              Local time ({localTimeZone()}). Hidden on the public site until this moment.
+            </span>
+          </label>
+        )}
         <button
           type="submit"
           disabled={saving}
@@ -161,7 +195,7 @@ export function ProjectEditorPage() {
         <ImageManager projectId={projectId} images={images} onChange={setImages} />
       ) : (
         <p className="mt-10 rounded-md border border-dashed border-line bg-white px-4 py-6 text-sm text-ink-soft">
-          Save the project first to upload images to object storage.
+          Save the project first to upload images to Cloudinary.
         </p>
       )}
 

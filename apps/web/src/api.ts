@@ -1,4 +1,4 @@
-import type { Admin, ApiError, Project, ProjectImage } from "./types";
+import type { Admin, ApiError, Project, ProjectImage, PublicProject } from "./types";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -35,16 +35,24 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
+  listPublishedProjects: () => request<{ projects: PublicProject[] }>("/api/public/projects"),
+  getPublishedProject: (slug: string) =>
+    request<{ project: PublicProject }>(`/api/public/projects/${slug}`),
   listProjects: () => request<{ projects: Project[] }>("/api/projects"),
   getProject: (id: string) => request<{ project: Project }>(`/api/projects/${id}`),
-  createProject: (body: { title: string; description: string; status: "draft" | "published" }) =>
+  createProject: (body: {
+    title: string;
+    description: string;
+    status: Project["status"];
+    publishAt?: string | null;
+  }) =>
     request<{ project: Project }>("/api/projects", {
       method: "POST",
       body: JSON.stringify(body),
     }),
   updateProject: (
     id: string,
-    body: Partial<{ title: string; description: string; status: "draft" | "published" }>,
+    body: Partial<{ title: string; description: string; status: Project["status"]; publishAt: string | null }>,
   ) =>
     request<{ project: Project }>(`/api/projects/${id}`, {
       method: "PATCH",

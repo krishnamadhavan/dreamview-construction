@@ -27,7 +27,7 @@ export function AppShell() {
 
         <nav className="hidden lg:mt-10 lg:block">
           <NavLink
-            to="/"
+            to="/admin"
             end
             className={({ isActive }) =>
               `block rounded-md px-3 py-2 text-sm ${isActive ? "bg-white/10 text-white" : "text-sand hover:bg-white/5"}`

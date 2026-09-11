@@ -1,19 +1,49 @@
-import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, lte, ne, or } from "drizzle-orm";
 import { db } from "../../db/client.js";
 import { projectImages, projects, type Project, type ProjectImage } from "../../db/schema.js";
 import { AppError, conflict, notFound } from "../../lib/errors.js";
+import { detectImageType } from "../../lib/image-type.js";
 import { slugify } from "../../lib/slug.js";
 import {
   deleteImage,
   extensionFor,
-  isAllowedImageType,
   MAX_IMAGE_BYTES,
   MAX_IMAGES_PER_PROJECT,
   objectKey,
   putImage,
-} from "../../storage/s3.js";
+} from "../../storage/cloudinary.js";
 
 export type ProjectWithImages = Project & { images: ProjectImage[] };
+export type ProjectStatus = Project["status"];
+
+function publiclyVisible() {
+  const now = new Date();
+  return or(eq(projects.status, "published"), and(eq(projects.status, "scheduled"), lte(projects.publishAt, now)));
+}
+
+function resolveSchedule(
+  status: ProjectStatus,
+  publishAt: string | Date | null | undefined,
+): { status: ProjectStatus; publishAt: Date | null } {
+  if (status === "draft") {
+    return { status, publishAt: null };
+  }
+  if (status === "scheduled") {
+    if (!publishAt) {
+      throw new AppError(400, "VALIDATION_ERROR", "A publish time is required when status is scheduled");
+    }
+    const at = publishAt instanceof Date ? publishAt : new Date(publishAt);
+    if (Number.isNaN(at.getTime())) {
+      throw new AppError(400, "VALIDATION_ERROR", "Invalid publish time");
+    }
+    if (at.getTime() <= Date.now()) {
+      return { status: "published", publishAt: at };
+    }
+    return { status, publishAt: at };
+  }
+  const at = publishAt ? (publishAt instanceof Date ? publishAt : new Date(publishAt)) : new Date();
+  return { status: "published", publishAt: Number.isNaN(at.getTime()) ? new Date() : at };
+}
 
 async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
   let candidate = base;
@@ -42,6 +72,40 @@ export async function listProjects(): Promise<ProjectWithImages[]> {
   });
 }
 
+export async function listPublishedProjects(): Promise<ProjectWithImages[]> {
+  return db.query.projects.findMany({
+    where: publiclyVisible(),
+    orderBy: [desc(projects.updatedAt)],
+    with: {
+      images: {
+        orderBy: [asc(projectImages.sortOrder), asc(projectImages.createdAt)],
+      },
+    },
+  });
+}
+
+export async function getPublishedProjectBySlug(slug: string): Promise<ProjectWithImages> {
+  const project = await db.query.projects.findFirst({
+    where: and(eq(projects.slug, slug), publiclyVisible()),
+    with: {
+      images: {
+        orderBy: [asc(projectImages.sortOrder), asc(projectImages.createdAt)],
+      },
+    },
+  });
+  if (!project) throw notFound("Project");
+  return project;
+}
+
+export async function publishDueProjects(): Promise<number> {
+  const due = await db
+    .update(projects)
+    .set({ status: "published", updatedAt: new Date() })
+    .where(and(eq(projects.status, "scheduled"), lte(projects.publishAt, new Date())))
+    .returning({ id: projects.id });
+  return due.length;
+}
+
 export async function getProject(id: string): Promise<ProjectWithImages> {
   const project = await db.query.projects.findFirst({
     where: eq(projects.id, id),
@@ -58,15 +122,18 @@ export async function getProject(id: string): Promise<ProjectWithImages> {
 export async function createProject(input: {
   title: string;
   description: string;
-  status: "draft" | "published";
+  status: ProjectStatus;
+  publishAt?: string | null;
 }): Promise<ProjectWithImages> {
+  const schedule = resolveSchedule(input.status, input.publishAt);
   const slug = await uniqueSlug(slugify(input.title));
   const [created] = await db
     .insert(projects)
     .values({
       title: input.title,
       description: input.description,
-      status: input.status,
+      status: schedule.status,
+      publishAt: schedule.publishAt,
       slug,
     })
     .returning();
@@ -76,11 +143,15 @@ export async function createProject(input: {
 
 export async function updateProject(
   id: string,
-  input: { title?: string; description?: string; status?: "draft" | "published" },
+  input: { title?: string; description?: string; status?: ProjectStatus; publishAt?: string | null },
 ): Promise<ProjectWithImages> {
   const current = await getProject(id);
   const nextTitle = input.title ?? current.title;
-  const shouldRefreshSlug = Boolean(input.title) && current.status === "draft";
+  const nextStatus = input.status ?? current.status;
+  const incomingPublishAt = input.publishAt !== undefined ? input.publishAt : current.publishAt;
+  const schedule = resolveSchedule(nextStatus, incomingPublishAt);
+  const unlocked = current.status === "draft" || current.status === "scheduled";
+  const shouldRefreshSlug = Boolean(input.title) && unlocked;
   const slug = shouldRefreshSlug ? await uniqueSlug(slugify(nextTitle), id) : current.slug;
 
   const [updated] = await db
@@ -88,7 +159,8 @@ export async function updateProject(
     .set({
       title: nextTitle,
       description: input.description ?? current.description,
-      status: input.status ?? current.status,
+      status: schedule.status,
+      publishAt: schedule.publishAt,
       slug,
       updatedAt: new Date(),
     })
@@ -129,13 +201,6 @@ export async function addImages(
   const created: ProjectImage[] = [];
   let index = 0;
   for (const file of files) {
-    if (!isAllowedImageType(file.mimetype)) {
-      throw new AppError(
-        415,
-        "UNSUPPORTED_TYPE",
-        `Unsupported type ${file.mimetype}. Use JPEG, PNG, WebP, or AVIF.`,
-      );
-    }
     if (file.buffer.byteLength > MAX_IMAGE_BYTES) {
       throw new AppError(413, "FILE_TOO_LARGE", `Each image must be under ${MAX_IMAGE_BYTES / (1024 * 1024)} MB`);
     }
@@ -143,15 +208,24 @@ export async function addImages(
       throw new AppError(400, "EMPTY_FILE", `${file.filename || "Image"} is empty`);
     }
 
-    const key = objectKey(projectId, file.filename || `image.${extensionFor(file.mimetype)}`, file.mimetype);
-    const url = await putImage({ key, body: file.buffer, contentType: file.mimetype });
+    const contentType = detectImageType(file.buffer);
+    if (!contentType) {
+      throw new AppError(
+        415,
+        "UNSUPPORTED_TYPE",
+        "File is not a valid JPEG, PNG, WebP, or AVIF image",
+      );
+    }
+
+    const key = objectKey(projectId, file.filename || `image.${extensionFor(contentType)}`, contentType);
+    const url = await putImage({ key, body: file.buffer, contentType });
     const [row] = await db
       .insert(projectImages)
       .values({
         projectId,
         storageKey: key,
         url,
-        contentType: file.mimetype,
+        contentType,
         sizeBytes: file.buffer.byteLength,
         sortOrder: nextOrderStart + index,
       })
@@ -203,7 +277,7 @@ export async function removeImage(projectId: string, imageId: string): Promise<v
   const image = await db.query.projectImages.findFirst({
     where: and(eq(projectImages.id, imageId), eq(projectImages.projectId, projectId)),
   });
-  if (!image) throw notFound("Image");
+  if (!image) return;
   await deleteImage(image.storageKey);
   await db.delete(projectImages).where(eq(projectImages.id, imageId));
   await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
