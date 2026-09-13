@@ -55,6 +55,10 @@ export function objectKey(projectId: string, originalName: string, contentType: 
   return `projects/${projectId}/${leaf}-${ext}`;
 }
 
+export function siteHeroKey(originalName: string, contentType: string): string {
+  return objectKey("hero", originalName, contentType).replace(/^projects\//, "site/");
+}
+
 export async function putImage(params: {
   key: string;
   body: Buffer;

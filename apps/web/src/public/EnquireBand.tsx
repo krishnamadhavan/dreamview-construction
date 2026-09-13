@@ -1,34 +1,48 @@
-import { Link } from "react-router-dom";
+import { telHref } from "../lib/whatsapp";
+import { EnquireDirect } from "./EnquireCta";
+import { EnquireForm } from "./HomeExtras";
+import { useSiteContent } from "./siteContent";
 
 export function EnquireBand() {
+  const settings = useSiteContent()?.settings;
+  const heading = settings?.enquireHeading || "Tell us about the site.";
+  const body =
+    settings?.enquireBody ||
+    "A plot, a conversion, a building that needs to be taken apart and put back properly — write with the brief as you have it.";
+  const phone = settings?.phone || "+91 80 0000 0000";
+  const email = settings?.email || "studio@dreamviewconstructions.com";
+  const note = settings?.studioNote || "By appointment";
+
   return (
-    <section id="contact" className="scroll-mt-8 bg-ink px-6 py-24 text-paper md:px-10 md:py-32 lg:px-16">
-      <div className="grid gap-14 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-        <div>
-          <p className="text-[11px] tracking-[0.28em] text-sand uppercase">Enquire</p>
-          <h2 className="display mt-4 max-w-3xl text-4xl leading-[1.05] md:text-6xl">
-            Tell us about the site.
-          </h2>
-          <p className="mt-6 max-w-xl text-base leading-7 text-sand">
-            A plot, a conversion, a building that needs to be taken apart and put back properly —
-            write with the brief as you have it. We will tell you if we are the right contractor.
-          </p>
-        </div>
-        <div className="space-y-8 border-t border-white/15 pt-8 lg:border-t-0 lg:pt-0">
-          <div>
-            <p className="text-[11px] tracking-[0.22em] text-sand uppercase">Studio</p>
-            <p className="mt-2 text-sm leading-6 text-paper/80">
-              Drawing office and site visits
-              <br />
-              By appointment
-            </p>
+    <section id="contact" className="scroll-mt-24 border-t border-white/10 py-28">
+      <div className="site-shell grid gap-14 lg:grid-cols-2 lg:items-start">
+        <div className="site-in">
+          <p className="site-kicker">Enquire</p>
+          <h2 className="display mt-4 max-w-3xl text-5xl leading-[0.95] md:text-6xl">{heading}</h2>
+          <p className="mt-6 max-w-xl text-[15px] leading-7 text-paper/60">{body}</p>
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            <div>
+              <p className="site-kicker">Studio</p>
+              <p className="mt-2 text-sm text-paper/70">{note}</p>
+            </div>
+            <div>
+              <p className="site-kicker">Phone</p>
+              <p className="mt-2 text-sm text-paper/70">
+                <a href={telHref(phone)}>{phone}</a>
+              </p>
+            </div>
+            <div>
+              <p className="site-kicker">Mail</p>
+              <p className="mt-2 text-sm text-paper/70">
+                <a href={`mailto:${email}`}>{email}</a>
+              </p>
+            </div>
           </div>
-          <Link
-            to="/projects"
-            className="inline-flex text-[12px] tracking-[0.22em] uppercase underline-offset-8 hover:underline"
-          >
-            Review the work
-          </Link>
+          <EnquireDirect />
+        </div>
+        <div className="site-in" style={{ ["--d" as string]: "120ms" }}>
+          <p className="site-kicker mb-6">Or write a brief</p>
+          <EnquireForm />
         </div>
       </div>
     </section>

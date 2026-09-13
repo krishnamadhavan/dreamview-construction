@@ -1,4 +1,4 @@
-import type { Admin, ApiError, Project, ProjectImage, PublicProject } from "./types";
+import type { Admin, ApiError, Enquiry, Project, ProjectImage, PublicProject, SiteContent } from "./types";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -43,6 +43,9 @@ export const api = {
   createProject: (body: {
     title: string;
     description: string;
+    location: string;
+    year: string;
+    kind: Project["kind"];
     status: Project["status"];
     publishAt?: string | null;
   }) =>
@@ -52,7 +55,15 @@ export const api = {
     }),
   updateProject: (
     id: string,
-    body: Partial<{ title: string; description: string; status: Project["status"]; publishAt: string | null }>,
+    body: Partial<{
+      title: string;
+      description: string;
+      location: string;
+      year: string;
+      kind: Project["kind"];
+      status: Project["status"];
+      publishAt: string | null;
+    }>,
   ) =>
     request<{ project: Project }>(`/api/projects/${id}`, {
       method: "PATCH",
@@ -79,4 +90,36 @@ export const api = {
     }),
   deleteImage: (projectId: string, imageId: string) =>
     request<void>(`/api/projects/${projectId}/images/${imageId}`, { method: "DELETE" }),
+  getPublicSite: () => request<{ site: SiteContent }>("/api/public/site"),
+  getSite: () => request<{ site: SiteContent }>("/api/site"),
+  saveSite: (site: SiteContent) =>
+    request<{ site: SiteContent }>("/api/site", {
+      method: "PUT",
+      body: JSON.stringify(site),
+    }),
+  uploadSiteHero: (file: File) => {
+    const form = new FormData();
+    form.append("image", file);
+    return request<{ site: SiteContent }>("/api/site/hero", {
+      method: "POST",
+      body: form,
+    });
+  },
+  deleteSiteHero: () => request<{ site: SiteContent }>("/api/site/hero", { method: "DELETE" }),
+  sendEnquiry: (body: {
+    name: string;
+    email: string;
+    phone?: string;
+    site: string;
+    brief: string;
+    company?: string;
+  }) =>
+    request<{ ok: true }>("/api/public/enquire", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  listEnquiries: () => request<{ enquiries: Enquiry[]; unread: number }>("/api/enquiries"),
+  markEnquiryRead: (id: string) =>
+    request<{ enquiry: Enquiry }>(`/api/enquiries/${id}`, { method: "PATCH" }),
+  deleteEnquiry: (id: string) => request<void>(`/api/enquiries/${id}`, { method: "DELETE" }),
 };

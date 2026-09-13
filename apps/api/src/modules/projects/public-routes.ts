@@ -18,6 +18,9 @@ function toPublic(project: ProjectWithImages) {
     title: project.title,
     slug: project.slug,
     description: project.description,
+    location: project.location,
+    year: project.year,
+    kind: project.kind,
     images: project.images.map((image: ProjectImage) => ({
       id: image.id,
       url: image.url,

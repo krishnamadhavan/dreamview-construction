@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /mock
+
+Sitemap: https://dreamviewconstructions.com/sitemap.xml

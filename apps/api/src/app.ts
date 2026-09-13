@@ -15,7 +15,10 @@ import { AppError, unauthorized } from "./lib/errors.js";
 import { authRoutes } from "./modules/auth/routes.js";
 import { cronRoutes } from "./modules/projects/cron-routes.js";
 import { publicProjectRoutes } from "./modules/projects/public-routes.js";
+import { sitemapRoutes } from "./modules/projects/sitemap.js";
 import { projectRoutes } from "./modules/projects/routes.js";
+import { enquiryRoutes } from "./modules/enquiries/routes.js";
+import { siteRoutes } from "./modules/site/routes.js";
 import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_PROJECT, storageReady } from "./storage/cloudinary.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -127,16 +130,25 @@ export async function buildApp() {
   await app.register(authRoutes);
   await app.register(cronRoutes);
   await app.register(publicProjectRoutes);
+  await app.register(sitemapRoutes);
   await app.register(projectRoutes);
+  await app.register(siteRoutes);
+  await app.register(enquiryRoutes);
 
   if (config.isProd) {
     const dist = webDistDir();
     if (!dist) {
       throw new Error("Built admin UI not found. Run pnpm build before starting in production.");
     }
+    app.addHook("onRequest", async (request, reply) => {
+      const path = request.url.split("?")[0] ?? "";
+      if (path === "/mock" || path.startsWith("/mock/")) {
+        return reply.code(404).send({ error: { code: "NOT_FOUND", message: "Not found" } });
+      }
+    });
     await app.register(fastifyStatic, { root: dist, wildcard: false });
     app.setNotFoundHandler((request, reply) => {
-      if (request.url.startsWith("/api")) {
+      if (request.url.startsWith("/api") || request.url.startsWith("/mock")) {
         return reply.code(404).send({
           error: { code: "NOT_FOUND", message: "Not found" },
         });
