@@ -1,5 +1,5 @@
 import { BrandMark } from "../components/BrandMark";
-import { telHref, whatsappHref } from "../lib/whatsapp";
+import { resolveWhatsAppNumber, telHref, whatsappHref } from "../lib/whatsapp";
 import { useSiteContent } from "./siteContent";
 
 export function SiteFooter() {
@@ -7,7 +7,7 @@ export function SiteFooter() {
   const phone = settings?.phone || "+91 80 0000 0000";
   const email = settings?.email || "studio@dreamviewconstructions.com";
   const note = settings?.studioNote || "By appointment";
-  const chat = whatsappHref(phone);
+  const chat = whatsappHref(resolveWhatsAppNumber(settings?.whatsapp, phone));
   return (
     <footer className="border-t border-white/10 py-14">
       <div className="site-shell">

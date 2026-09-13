@@ -3,7 +3,7 @@ import { db } from "../../db/client.js";
 import { siteEntries, siteSettings, type SiteEntry, type SiteSettings } from "../../db/schema.js";
 import { AppError } from "../../lib/errors.js";
 import { detectImageType } from "../../lib/image-type.js";
-import { deleteImage, extensionFor, MAX_IMAGE_BYTES, putImage, siteHeroKey } from "../../storage/cloudinary.js";
+import { deleteImage, extensionFor, MAX_IMAGE_BYTES, putImage, siteHeroKey, siteJournalKey } from "../../storage/cloudinary.js";
 
 export type SiteContent = {
   settings: SiteSettings;
@@ -16,6 +16,11 @@ async function ensureSettings(): Promise<SiteSettings> {
   const [created] = await db.insert(siteSettings).values({}).returning();
   if (!created) throw new Error("Could not create site settings");
   return created;
+}
+
+export async function getStudioContact(): Promise<{ email: string; phone: string }> {
+  const settings = await ensureSettings();
+  return { email: settings.email.trim(), phone: settings.phone.trim() };
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
@@ -33,8 +38,12 @@ export async function saveSiteContent(input: {
     enquireHeading: string;
     enquireBody: string;
     phone: string;
+    whatsapp: string;
     email: string;
     studioNote: string;
+    heroKicker: string;
+    heroHeading: string;
+    heroBody: string;
   };
   entries: Array<{
     id?: string;
@@ -107,6 +116,22 @@ export async function setHeroImage(file: {
 
   const entries = await db.select().from(siteEntries).orderBy(asc(siteEntries.sortOrder), asc(siteEntries.createdAt));
   return { settings: settings ?? { ...current, heroImageUrl: url, heroImageKey: key }, entries };
+}
+
+export async function uploadSiteImage(file: { filename: string; buffer: Buffer }): Promise<{ url: string }> {
+  if (file.buffer.byteLength === 0) {
+    throw new AppError(400, "EMPTY_FILE", `${file.filename || "Image"} is empty`);
+  }
+  if (file.buffer.byteLength > MAX_IMAGE_BYTES) {
+    throw new AppError(413, "FILE_TOO_LARGE", `Each image must be under ${MAX_IMAGE_BYTES / (1024 * 1024)} MB`);
+  }
+  const contentType = detectImageType(file.buffer);
+  if (!contentType) {
+    throw new AppError(415, "UNSUPPORTED_TYPE", "File is not a valid JPEG, PNG, WebP, or AVIF image");
+  }
+  const key = siteJournalKey(file.filename || `note.${extensionFor(contentType)}`, contentType);
+  const url = await putImage({ key, body: file.buffer, contentType });
+  return { url };
 }
 
 export async function clearHeroImage(): Promise<SiteContent> {

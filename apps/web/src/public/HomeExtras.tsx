@@ -245,7 +245,7 @@ export function EnquireForm() {
         phone: String(data.get("phone") ?? ""),
         site: String(data.get("site") ?? ""),
         brief: String(data.get("brief") ?? ""),
-        company: String(data.get("company") ?? ""),
+        website_url: String(data.get("website_url") ?? ""),
       });
       form.reset();
       setSent(true);
@@ -259,10 +259,9 @@ export function EnquireForm() {
 
   return (
     <form onSubmit={(event) => void onSubmit(event)} className="space-y-6">
-      <label className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
-        Company
-        <input name="company" tabIndex={-1} autoComplete="off" />
-      </label>
+      <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+        <input name="website_url" tabIndex={-1} autoComplete="off" />
+      </div>
       <label className="block text-[11px] tracking-[0.18em] text-paper/50 uppercase">
         Name
         <input

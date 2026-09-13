@@ -1,4 +1,7 @@
 import type { FastifyInstance } from "fastify";
+import { loadConfig } from "../../config.js";
+import { notifyStudioOfEnquiry } from "../../lib/mail.js";
+import { getStudioContact } from "../site/service.js";
 import { createEnquiryBody, enquiryIdParam } from "./schemas.js";
 import { assertEnquiryRate, createEnquiry, deleteEnquiry, listEnquiries, markEnquiryRead } from "./service.js";
 
@@ -27,16 +30,22 @@ function toAdmin(row: {
 export async function enquiryRoutes(app: FastifyInstance): Promise<void> {
   app.post("/api/public/enquire", async (request, reply) => {
     const body = createEnquiryBody.parse(request.body);
-    if (body.company.trim()) {
+    if (body.website_url.trim() || body.company.trim()) {
       return reply.code(201).send({ ok: true });
     }
     assertEnquiryRate(request.ip || "unknown");
-    await createEnquiry({
+    const enquiry = {
       name: body.name,
       email: body.email,
       phone: body.phone,
       site: body.site,
       brief: body.brief,
+    };
+    await createEnquiry(enquiry);
+    const studio = await getStudioContact();
+    const to = studio.email || loadConfig().admin.email;
+    notifyStudioOfEnquiry(to, enquiry).catch((error) => {
+      request.log.warn({ err: error }, "enquiry notice failed");
     });
     return reply.code(201).send({ ok: true });
   });

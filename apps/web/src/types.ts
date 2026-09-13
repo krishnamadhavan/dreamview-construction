@@ -71,9 +71,13 @@ export type SiteSettings = {
   enquireHeading: string;
   enquireBody: string;
   phone: string;
+  whatsapp: string;
   email: string;
   studioNote: string;
   heroImageUrl: string;
+  heroKicker: string;
+  heroHeading: string;
+  heroBody: string;
 };
 
 export type SiteEntry = {

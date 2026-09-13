@@ -59,6 +59,10 @@ export function siteHeroKey(originalName: string, contentType: string): string {
   return objectKey("hero", originalName, contentType).replace(/^projects\//, "site/");
 }
 
+export function siteJournalKey(originalName: string, contentType: string): string {
+  return objectKey("journal", originalName, contentType).replace(/^projects\//, "site/");
+}
+
 export async function putImage(params: {
   key: string;
   body: Buffer;

@@ -12,6 +12,10 @@ export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
 
+export function resolveWhatsAppNumber(whatsapp?: string | null, phone?: string | null): string {
+  return whatsapp?.trim() || phone?.trim() || "";
+}
+
 export function whatsappHref(phone: string, message = DEFAULT_MESSAGE): string | null {
   const digits = phoneDigits(phone);
   if (digits.length < 11) return null;

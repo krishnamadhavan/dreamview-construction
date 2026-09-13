@@ -17,6 +17,13 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().optional().default(""),
   CLOUDINARY_API_SECRET: z.string().optional().default(""),
   CRON_SECRET: z.string().optional().default(""),
+  SMTP_HOST: z.string().optional().default(""),
+  SMTP_PORT: z.preprocess((value) => (value === "" || value == null ? 587 : value), z.coerce.number().int().positive()),
+  SMTP_USER: z.string().optional().default(""),
+  SMTP_PASS: z.string().optional().default(""),
+  MAIL_FROM: z.string().optional().default(""),
+  RESEND_API_KEY: z.string().optional().default(""),
+  SITE_URL: z.string().optional().default("https://dreamviewconstructions.com"),
 });
 
 export type AppConfig = {
@@ -32,6 +39,15 @@ export type AppConfig = {
     apiKey: string;
     apiSecret: string;
   };
+  mail: {
+    smtpHost: string;
+    smtpPort: number;
+    smtpUser: string;
+    smtpPass: string;
+    from: string;
+    resendApiKey: string;
+  };
+  siteUrl: string;
 };
 
 let cached: AppConfig | undefined;
@@ -69,6 +85,15 @@ export function loadConfig(): AppConfig {
       apiKey: env.CLOUDINARY_API_KEY,
       apiSecret: env.CLOUDINARY_API_SECRET,
     },
+    mail: {
+      smtpHost: env.SMTP_HOST,
+      smtpPort: env.SMTP_PORT,
+      smtpUser: env.SMTP_USER,
+      smtpPass: env.SMTP_PASS,
+      from: env.MAIL_FROM,
+      resendApiKey: env.RESEND_API_KEY,
+    },
+    siteUrl: env.SITE_URL.replace(/\/$/, "") || "https://dreamviewconstructions.com",
   };
   return cached;
 }
