@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { PublicProject } from "../types";
 import { EnquireBand } from "./EnquireBand";
+import { usePageMeta } from "./usePageMeta";
 import { SiteFrame } from "./SiteFrame";
 import { WorkDeck } from "./WorkDeck";
 
 export function PublicProjectsPage() {
   const [projects, setProjects] = useState<PublicProject[] | null>(null);
 
+  usePageMeta("Work — Dreamview Construction", "Selected construction, interiors, and restoration from the Dreamview record.");
+
   useEffect(() => {
-    document.title = "Projects — Dreamview";
     api
       .listPublishedProjects()
       .then((data) => setProjects(data.projects))

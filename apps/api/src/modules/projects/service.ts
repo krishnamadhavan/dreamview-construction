@@ -122,6 +122,9 @@ export async function getProject(id: string): Promise<ProjectWithImages> {
 export async function createProject(input: {
   title: string;
   description: string;
+  location?: string;
+  year?: string;
+  kind?: string;
   status: ProjectStatus;
   publishAt?: string | null;
 }): Promise<ProjectWithImages> {
@@ -132,6 +135,9 @@ export async function createProject(input: {
     .values({
       title: input.title,
       description: input.description,
+      location: input.location ?? "",
+      year: input.year ?? "",
+      kind: input.kind ?? "residence",
       status: schedule.status,
       publishAt: schedule.publishAt,
       slug,
@@ -143,7 +149,15 @@ export async function createProject(input: {
 
 export async function updateProject(
   id: string,
-  input: { title?: string; description?: string; status?: ProjectStatus; publishAt?: string | null },
+  input: {
+    title?: string;
+    description?: string;
+    location?: string;
+    year?: string;
+    kind?: string;
+    status?: ProjectStatus;
+    publishAt?: string | null;
+  },
 ): Promise<ProjectWithImages> {
   const current = await getProject(id);
   const nextTitle = input.title ?? current.title;
@@ -159,6 +173,9 @@ export async function updateProject(
     .set({
       title: nextTitle,
       description: input.description ?? current.description,
+      location: input.location ?? current.location,
+      year: input.year ?? current.year,
+      kind: input.kind ?? current.kind,
       status: schedule.status,
       publishAt: schedule.publishAt,
       slug,

@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { ArrowIcon } from "../components/ArrowIcon";
+import { BrandMark } from "../components/BrandMark";
 import { useAuth } from "../auth";
 
 export function LoginPage() {
@@ -30,7 +31,9 @@ export function LoginPage() {
       <div className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="absolute inset-0 bg-[url('https://res.cloudinary.com/mrooyq3a/image/upload/w_1600,q_auto,f_auto/v1787422033/projects/5cf5d9d8-0642-4e0f-a594-bd3efe48435f/home-img1-9d0c6766-webp.webp')] bg-cover bg-center" />
         <div className="absolute inset-0 bg-gradient-to-t from-void via-void/70 to-void/30" />
-        <p className="relative text-[13px] tracking-[0.4em] uppercase">Dreamview</p>
+        <div className="relative">
+          <BrandMark size="md" />
+        </div>
         <div className="relative max-w-md">
           <p className="text-[11px] tracking-[0.3em] text-gold uppercase">Admin</p>
           <h1 className="display mt-3 text-6xl leading-[0.94]">We keep the record.</h1>
@@ -42,6 +45,7 @@ export function LoginPage() {
       </div>
       <div className="flex items-center justify-center px-6 py-16">
         <form onSubmit={onSubmit} className="w-full max-w-sm">
+          <BrandMark size="sm" className="mb-8 lg:hidden" />
           <p className="text-[11px] tracking-[0.3em] text-gold uppercase">Sign in</p>
           <h2 className="display mt-2 text-5xl">Welcome back</h2>
           <label className="mt-8 block text-sm text-paper/80">

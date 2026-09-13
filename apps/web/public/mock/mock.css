@@ -94,10 +94,15 @@ p { margin: 0; }
 }
 .logo {
   flex: none;
-  font-size: 13px;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  line-height: 1;
+  line-height: 0;
+}
+.logo img {
+  display: block;
+  height: 72px;
+  width: auto;
+  max-width: min(220px, 46vw);
+  object-fit: contain;
+  object-position: left center;
 }
 .links {
   display: flex;

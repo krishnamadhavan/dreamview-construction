@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
+import { api } from "../api";
 import { MediaImage } from "../components/MediaImage";
-import { entriesOf, useSiteContent } from "./siteContent";
+import { entriesOf, useSiteContent, useSiteReady } from "./siteContent";
 
 const PEOPLE = [
   { initials: "KM", name: "Krishna", role: "Principal" },
@@ -53,20 +54,27 @@ const FAQS = [
 
 export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
   const site = useSiteContent();
+  const loaded = useSiteReady();
   const people = entriesOf(site, "person");
   const voices = entriesOf(site, "voice");
   const awards = entriesOf(site, "award");
   const notes = entriesOf(site, "journal");
   const faqs = entriesOf(site, "faq");
   const clients = entriesOf(site, "client");
-  const peopleView = people.length ? people.map((e) => ({ initials: e.body || e.title.slice(0, 2), name: e.title, role: e.subtitle })) : PEOPLE;
-  const voicesView = voices.length ? voices.map((e) => ({ quote: e.title, cite: e.subtitle })) : VOICES;
-  const awardsView = awards.length ? awards.map((e) => ({ title: e.title, meta: e.subtitle })) : AWARDS;
+  const peopleView = people.length
+    ? people.map((e) => ({ initials: e.body || e.title.slice(0, 2), name: e.title, role: e.subtitle }))
+    : loaded
+      ? []
+      : PEOPLE;
+  const voicesView = voices.length ? voices.map((e) => ({ quote: e.title, cite: e.subtitle })) : loaded ? [] : VOICES;
+  const awardsView = awards.length ? awards.map((e) => ({ title: e.title, meta: e.subtitle })) : loaded ? [] : AWARDS;
   const notesView = notes.length
     ? notes.map((e, i) => ({ kicker: e.subtitle, title: e.title, excerpt: e.body, image: e.imageUrl || noteImages[i] }))
-    : NOTES.map((note, i) => ({ ...note, image: noteImages[i] }));
-  const faqsView = faqs.length ? faqs.map((e) => ({ q: e.title, a: e.body })) : FAQS;
-  const clientsView = clients.length ? clients.map((e) => e.title) : ["Private residences", "Architects", "Civic works", "Restorations"];
+    : loaded
+      ? []
+      : NOTES.map((note, i) => ({ ...note, image: noteImages[i] }));
+  const faqsView = faqs.length ? faqs.map((e) => ({ q: e.title, a: e.body })) : loaded ? [] : FAQS;
+  const clientsView = clients.length ? clients.map((e) => e.title) : loaded ? [] : ["Private residences", "Architects", "Civic works", "Restorations"];
   const territoryHeading = site?.settings.territoryHeading || "Where we work";
   const territoryBody =
     site?.settings.territoryBody ||
@@ -74,6 +82,7 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
 
   return (
     <>
+      {peopleView.length > 0 && (
       <section id="people" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -93,7 +102,9 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </ul>
         </div>
       </section>
+      )}
 
+      {voicesView.length > 0 && (
       <section id="voices" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -110,7 +121,9 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </div>
         </div>
       </section>
+      )}
 
+      {awardsView.length > 0 && (
       <section id="recognition" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -127,7 +140,9 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </ul>
         </div>
       </section>
+      )}
 
+      {(territoryHeading || territoryBody) && (
       <section id="territory" className="scroll-mt-24 py-28">
         <div className="site-shell grid gap-10 lg:grid-cols-2 lg:items-end">
           <div className="site-in">
@@ -139,7 +154,9 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </p>
         </div>
       </section>
+      )}
 
+      {notesView.length > 0 && (
       <section id="journal" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -164,7 +181,9 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </div>
         </div>
       </section>
+      )}
 
+      {clientsView.length > 0 && (
       <section id="clients" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -180,7 +199,9 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </div>
         </div>
       </section>
+      )}
 
+      {faqsView.length > 0 && (
       <section id="questions" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -201,27 +222,72 @@ export function HomeExtras({ noteImages = [] }: { noteImages?: string[] }) {
           </div>
         </div>
       </section>
+      )}
     </>
   );
 }
 
 export function EnquireForm() {
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSent(true);
-    event.currentTarget.reset();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setBusy(true);
+    setError(null);
+    try {
+      await api.sendEnquiry({
+        name: String(data.get("name") ?? ""),
+        email: String(data.get("email") ?? ""),
+        phone: String(data.get("phone") ?? ""),
+        site: String(data.get("site") ?? ""),
+        brief: String(data.get("brief") ?? ""),
+        company: String(data.get("company") ?? ""),
+      });
+      form.reset();
+      setSent(true);
+    } catch (err) {
+      setSent(false);
+      setError(err instanceof Error ? err.message : "Could not send the brief");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={(event) => void onSubmit(event)} className="space-y-6">
+      <label className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+        Company
+        <input name="company" tabIndex={-1} autoComplete="off" />
+      </label>
       <label className="block text-[11px] tracking-[0.18em] text-paper/50 uppercase">
         Name
         <input
           name="name"
           required
           placeholder="Your name"
+          className="mt-2 w-full border-0 border-b border-white/20 bg-transparent py-3 text-sm tracking-normal text-paper outline-none placeholder:text-paper/30 focus:border-gold"
+        />
+      </label>
+      <label className="block text-[11px] tracking-[0.18em] text-paper/50 uppercase">
+        Email
+        <input
+          name="email"
+          type="email"
+          required
+          placeholder="you@studio.com"
+          className="mt-2 w-full border-0 border-b border-white/20 bg-transparent py-3 text-sm tracking-normal text-paper outline-none placeholder:text-paper/30 focus:border-gold"
+        />
+      </label>
+      <label className="block text-[11px] tracking-[0.18em] text-paper/50 uppercase">
+        Phone
+        <input
+          name="phone"
+          type="tel"
+          placeholder="Optional"
           className="mt-2 w-full border-0 border-b border-white/20 bg-transparent py-3 text-sm tracking-normal text-paper outline-none placeholder:text-paper/30 focus:border-gold"
         />
       </label>
@@ -246,9 +312,10 @@ export function EnquireForm() {
       </label>
       <button
         type="submit"
-        className="inline-flex items-center gap-3 rounded-full bg-gold px-5 py-3 text-[12px] tracking-[0.16em] text-void uppercase transition hover:-translate-y-0.5 hover:bg-[#d8bc86]"
+        disabled={busy}
+        className="inline-flex items-center gap-3 rounded-full bg-gold px-5 py-3 text-[12px] tracking-[0.16em] text-void uppercase transition hover:-translate-y-0.5 hover:bg-[#d8bc86] disabled:opacity-55"
       >
-        Send the brief
+        {busy ? "Sending…" : "Send the brief"}
         <svg viewBox="0 0 18 10" className="h-2.5 w-4" aria-hidden="true">
           <path
             d="M1 5h14M11 1.5 16 5l-5 3.5"
@@ -260,7 +327,8 @@ export function EnquireForm() {
           />
         </svg>
       </button>
-      {sent && (
+      {error && <p className="text-sm text-gold">{error}</p>}
+      {sent && !error && (
         <p className="text-sm text-gold">Received — we will write back if we are the right contractor.</p>
       )}
     </form>

@@ -1,15 +1,13 @@
-import { Link, NavLink } from "react-router-dom";
-import { ArrowIcon } from "../components/ArrowIcon";
+import { NavLink } from "react-router-dom";
+import { BrandMark } from "../components/BrandMark";
+import { EnquireCta } from "./EnquireCta";
 
-export function SiteHeader({ onInk = false }: { onInk?: boolean }) {
-  void onInk;
+export function SiteHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(28,28,28,0.55)] backdrop-blur-md">
-      <div className="site-shell flex items-center justify-between gap-6 py-4">
-        <Link to="/" className="text-[13px] tracking-[0.4em] text-paper uppercase">
-          Dreamview
-        </Link>
-        <nav className="flex items-center gap-7 text-[12px] tracking-[0.18em] text-paper/80 uppercase">
+      <div className="site-shell flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-3">
+        <BrandMark to="/" size="sm" />
+        <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] tracking-[0.18em] text-paper/80 uppercase">
           <NavLink to="/projects" className={({ isActive }) => (isActive ? "text-paper" : "hover:text-paper")}>
             Work
           </NavLink>
@@ -19,10 +17,7 @@ export function SiteHeader({ onInk = false }: { onInk?: boolean }) {
           <a href="/#process" className="hover:text-paper">
             Method
           </a>
-          <a href="/#contact" className="site-ask">
-            Enquire
-            <ArrowIcon />
-          </a>
+          <EnquireCta />
         </nav>
       </div>
     </header>

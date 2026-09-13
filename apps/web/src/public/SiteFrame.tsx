@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { EnquireFloat } from "./EnquireCta";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 import { useSiteReveal } from "./useSiteReveal";
@@ -19,6 +20,7 @@ export function SiteFrame({ children }: { children: ReactNode }) {
       <SiteHeader />
       {children}
       <SiteFooter />
+      <EnquireFloat />
     </div>
   );
 }

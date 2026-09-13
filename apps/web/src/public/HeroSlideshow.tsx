@@ -26,10 +26,10 @@ export function HeroSlideshow({ projects, coverUrl = "" }: { projects: PublicPro
   const [paintedCover, setPaintedCover] = useState(DEFAULT_HERO_COVER);
   const cover: Slide = {
     id: "hero-cover",
-    title: "Dreamview",
+    title: "Dreamview Construction",
     slug: null,
     url: paintedCover,
-    alt: "Dreamview",
+    alt: "Dreamview Construction",
   };
   const slides = [cover, ...projectSlides].slice(0, 6);
   const [index, setIndex] = useState(0);
@@ -79,13 +79,29 @@ export function HeroSlideshow({ projects, coverUrl = "" }: { projects: PublicPro
 
   useEffect(() => {
     if (!coverReady || slides.length < 2) return;
-    const timer = window.setInterval(() => {
-      setIndex((current) => {
-        setPrev(current);
-        return (current + 1) % slides.length;
-      });
-    }, 4200);
-    return () => window.clearInterval(timer);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduced.matches) return;
+
+    let timer = 0;
+    const play = () => {
+      window.clearInterval(timer);
+      timer = window.setInterval(() => {
+        setIndex((current) => {
+          setPrev(current);
+          return (current + 1) % slides.length;
+        });
+      }, 4200);
+    };
+    const onVis = () => {
+      window.clearInterval(timer);
+      if (document.visibilityState === "visible") play();
+    };
+    if (document.visibilityState === "visible") play();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [coverReady, slides.length]);
 
   const active = slides[index];

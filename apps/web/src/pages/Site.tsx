@@ -153,7 +153,16 @@ export function SitePage() {
         </div>
       </div>
 
-      <HeroCoverDropper url={settings.heroImageUrl || ""} onChange={setSite} />
+      <HeroCoverDropper
+        url={settings.heroImageUrl || ""}
+        onChange={(next) =>
+          setSite((current) =>
+            current
+              ? { ...current, settings: { ...current.settings, heroImageUrl: next.settings.heroImageUrl } }
+              : next,
+          )
+        }
+      />
 
       <section className="space-y-5">
         <p className="text-[11px] tracking-[0.28em] text-gold uppercase">Studio</p>
@@ -187,8 +196,9 @@ export function SitePage() {
         </label>
         <div className="grid gap-5 md:grid-cols-3">
           <label className="block text-sm">
-            Phone
+            Phone / WhatsApp
             <input className="admin-field" value={settings.phone} onChange={(e) => patchSettings({ phone: e.target.value })} />
+            <span className="mt-2 block text-xs text-paper/40">Used for Call and the Enquire WhatsApp button.</span>
           </label>
           <label className="block text-sm">
             Email

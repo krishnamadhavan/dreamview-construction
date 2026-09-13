@@ -5,24 +5,8 @@ export function useSiteReveal() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const targets = () => document.querySelectorAll(".site-in, .site-mask");
 
-    const countUp = (el: HTMLElement) => {
-      const to = Number(el.dataset.count || 0);
-      if (!Number.isFinite(to) || el.dataset.counted === "1") return;
-      el.dataset.counted = "1";
-      const start = performance.now();
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / 900);
-        el.textContent = String(Math.round(to * (1 - (1 - t) ** 3))).padStart(2, "0");
-        if (t < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    };
-
     if (reduced || !("IntersectionObserver" in window)) {
-      targets().forEach((el) => {
-        el.classList.add("is-in");
-        el.querySelectorAll<HTMLElement>("[data-count]").forEach(countUp);
-      });
+      targets().forEach((el) => el.classList.add("is-in"));
       return;
     }
 
@@ -31,7 +15,6 @@ export function useSiteReveal() {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
           entry.target.classList.add("is-in");
-          entry.target.querySelectorAll<HTMLElement>("[data-count]").forEach(countUp);
           io.unobserve(entry.target);
         }
       },

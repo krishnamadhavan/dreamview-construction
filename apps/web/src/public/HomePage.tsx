@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import type { PublicProject } from "../types";
 import { MediaImage } from "../components/MediaImage";
+import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo";
 import { EnquireBand } from "./EnquireBand";
+import { StudioJsonLd } from "./StudioJsonLd";
+import { usePageMeta } from "./usePageMeta";
 import { HeroSlideshow } from "./HeroSlideshow";
 import { HomeExtras } from "./HomeExtras";
 import { SiteFrame } from "./SiteFrame";
-import { entriesOf, useSiteContent } from "./siteContent";
+import { entriesOf, useSiteContent, useSiteReady } from "./siteContent";
 
 const SERVICES = [
   {
@@ -61,10 +64,12 @@ const STEPS = [
 
 export function HomePage() {
   const site = useSiteContent();
+  const siteReady = useSiteReady();
   const [projects, setProjects] = useState<PublicProject[] | null>(null);
 
+  usePageMeta(SITE_NAME, SITE_DESCRIPTION);
+
   useEffect(() => {
-    document.title = "Dreamview";
     api
       .listPublishedProjects()
       .then((data) => setProjects(data.projects))
@@ -79,17 +84,22 @@ export function HomePage() {
   const stepEntries = entriesOf(site, "step");
   const servicesView = serviceEntries.length
     ? serviceEntries.map((entry) => ({ title: entry.title, body: entry.body }))
-    : SERVICES;
+    : siteReady
+      ? []
+      : SERVICES;
   const stepsView = stepEntries.length
     ? stepEntries.map((entry, index) => ({
-        n: entry.subtitle || String(index + 1).padStart(2, "0"),
+        n: String(index + 1).padStart(2, "0"),
         title: entry.title,
         body: entry.body,
       }))
-    : STEPS;
+    : siteReady
+      ? []
+      : STEPS;
 
   return (
     <SiteFrame>
+      <StudioJsonLd />
       <HeroSlideshow projects={withPhotos} coverUrl={site?.settings.heroImageUrl || ""} />
 
       <section className="border-y border-white/10">
@@ -160,6 +170,7 @@ export function HomePage() {
         )}
       </section>
 
+      {servicesView.length > 0 && (
       <section id="services" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -177,7 +188,9 @@ export function HomePage() {
           </ul>
         </div>
       </section>
+      )}
 
+      {stepsView.length > 0 && (
       <section id="process" className="scroll-mt-24 py-28">
         <div className="site-shell">
           <div className="site-in">
@@ -195,6 +208,7 @@ export function HomePage() {
           </ol>
         </div>
       </section>
+      )}
 
       <HomeExtras
         noteImages={work.flatMap((project) => project.images.slice(1, 2).map((image) => image.url)).slice(0, 2)}
@@ -215,10 +229,31 @@ function Stat({
   count?: number;
   delay?: string;
 }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || count == null) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      el.textContent = String(count).padStart(2, "0");
+      return;
+    }
+    const start = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 900);
+      el.textContent = String(Math.round(count * (1 - (1 - t) ** 3))).padStart(2, "0");
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [count]);
+
   return (
     <div className="site-in" style={{ ["--d" as string]: delay }}>
-      <p className="display text-5xl leading-none" {...(count != null ? { "data-count": count } : {})}>
-        {count != null ? "00" : value}
+      <p ref={ref} className="display text-5xl leading-none">
+        {value}
       </p>
       <p className="mt-2 text-[11px] tracking-[0.18em] text-paper/40 uppercase">{label}</p>
     </div>

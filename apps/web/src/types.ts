@@ -1,4 +1,7 @@
+import type { ProjectKind } from "./lib/projectKind";
+
 export type ProjectStatus = "draft" | "scheduled" | "published";
+export type { ProjectKind };
 
 export type ProjectImage = {
   id: string;
@@ -17,6 +20,9 @@ export type Project = {
   title: string;
   slug: string;
   description: string;
+  location: string;
+  year: string;
+  kind: ProjectKind;
   status: ProjectStatus;
   publishAt: string | null;
   createdAt: string;
@@ -41,6 +47,9 @@ export type PublicProject = {
   title: string;
   slug: string;
   description: string;
+  location: string;
+  year: string;
+  kind: ProjectKind;
   images: PublicProjectImage[];
 };
 
@@ -80,6 +89,17 @@ export type SiteEntry = {
 export type SiteContent = {
   settings: SiteSettings;
   entries: SiteEntry[];
+};
+
+export type Enquiry = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  site: string;
+  brief: string;
+  readAt: string | null;
+  createdAt: string;
 };
 
 export type ApiError = {

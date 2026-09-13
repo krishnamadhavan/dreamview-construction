@@ -16,6 +16,11 @@
   --color-void: #0b0b0b;
 }
 
+.brand-mark {
+  display: block;
+  max-width: min(220px, 46vw);
+}
+
 .admin-app {
   min-height: 100%;
   background: #0b0b0b;
@@ -42,6 +47,20 @@
 
 .admin-field:focus {
   border-color: #c6a96f;
+}
+
+select.admin-field {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #c6a96f 50%),
+    linear-gradient(135deg, #c6a96f 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
 }
 
 .admin-btn {
@@ -172,6 +191,61 @@ body {
 }
 
 .site-ask:hover svg {
+  transform: translateX(5px);
+}
+
+.site-ask-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid rgba(243, 239, 230, 0.22);
+  border-radius: 999px;
+  color: #f3efe6;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+
+.site-ask-ghost:hover {
+  border-color: #c6a96f;
+  color: #c6a96f;
+}
+
+.site-ask-float {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.25rem 0.85rem 1.35rem;
+  border: 1px solid #d4b57a;
+  border-radius: 999px;
+  background: #c6a96f;
+  color: #161616;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  transition: background 0.3s var(--ease), transform 0.3s var(--ease);
+}
+
+.site-ask-float svg {
+  width: 18px;
+  height: 10px;
+  flex: none;
+  transition: transform 0.3s var(--ease);
+}
+
+.site-ask-float:hover {
+  background: #e0c48d;
+  transform: translateY(-2px);
+}
+
+.site-ask-float:hover svg {
   transform: translateX(5px);
 }
 

@@ -3,7 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import type { PublicProject } from "../types";
 import { MediaImage } from "../components/MediaImage";
+import { projectKindLabel } from "../lib/projectKind";
+import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo";
 import { EnquireBand } from "./EnquireBand";
+import { usePageMeta } from "./usePageMeta";
 import { SiteFrame } from "./SiteFrame";
 
 export function ProjectDetailPage() {
@@ -20,7 +23,6 @@ export function ProjectDetailPage() {
       .getPublishedProject(slug)
       .then((data) => {
         setProject(data.project);
-        document.title = `${data.project.title} — Dreamview`;
       })
       .catch(() => setMissing(true));
     api
@@ -28,6 +30,15 @@ export function ProjectDetailPage() {
       .then((data) => setSiblings(data.projects))
       .catch(() => setSiblings([]));
   }, [slug]);
+
+  usePageMeta(
+    missing
+      ? "Work — Dreamview Construction"
+      : project
+        ? `${project.title} — Dreamview Construction`
+        : SITE_NAME,
+    project?.description.trim().slice(0, 180) || SITE_DESCRIPTION,
+  );
 
   if (missing) {
     return (
@@ -82,18 +93,26 @@ export function ProjectDetailPage() {
         </section>
 
         <div className="border-b border-white/10">
-          <div className="site-shell grid gap-8 py-8 md:grid-cols-3">
+          <div className="site-shell grid gap-8 py-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <p className="site-kicker">Type</p>
-              <p className="mt-2">Public record</p>
+              <p className="mt-2">{projectKindLabel(project.kind)}</p>
             </div>
+            {project.location && (
+              <div>
+                <p className="site-kicker">Location</p>
+                <p className="mt-2">{project.location}</p>
+              </div>
+            )}
+            {project.year && (
+              <div>
+                <p className="site-kicker">Year</p>
+                <p className="mt-2">{project.year}</p>
+              </div>
+            )}
             <div>
               <p className="site-kicker">Photographs</p>
-              <p className="mt-2">{project.images.length}</p>
-            </div>
-            <div>
-              <p className="site-kicker">Reference</p>
-              <p className="mt-2 font-mono text-sm text-paper/50">/{project.slug}</p>
+              <p className="mt-2">{String(project.images.length).padStart(2, "0")}</p>
             </div>
           </div>
         </div>

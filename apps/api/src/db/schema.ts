@@ -27,6 +27,9 @@ export const projects = pgTable(
     title: text("title").notNull(),
     slug: text("slug").notNull().unique(),
     description: text("description").notNull().default(""),
+    location: text("location").notNull().default(""),
+    year: text("year").notNull().default(""),
+    kind: text("kind").notNull().default("residence"),
     status: projectStatusEnum("status").notNull().default("draft"),
     publishAt: timestamp("publish_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -102,6 +105,22 @@ export const siteEntries = pgTable(
 export type Project = typeof projects.$inferSelect;
 export type ProjectImage = typeof projectImages.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
+export const enquiries = pgTable(
+  "enquiries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull().default(""),
+    site: text("site").notNull(),
+    brief: text("brief").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("enquiries_created_idx").on(table.createdAt)],
+);
+
 export type SiteSettings = typeof siteSettings.$inferSelect;
 export type SiteEntry = typeof siteEntries.$inferSelect;
 export type SiteEntryKind = (typeof siteEntryKindEnum.enumValues)[number];
+export type Enquiry = typeof enquiries.$inferSelect;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { Link } from "react-router-dom";
 import { MediaImage } from "../components/MediaImage";
+import { projectKindLabel } from "../lib/projectKind";
 import type { PublicProject } from "../types";
 
 export function WorkDeck({ projects }: { projects: PublicProject[] }) {
@@ -8,9 +9,9 @@ export function WorkDeck({ projects }: { projects: PublicProject[] }) {
   const [current, setCurrent] = useState(0);
   const drag = useRef({ hold: false, x: 0, left: 0, moved: 0 });
 
-  function sync() {
+  function nearestIndex() {
     const track = trackRef.current;
-    if (!track) return;
+    if (!track) return 0;
     const mid = track.scrollLeft + track.clientWidth / 2;
     const slides = [...track.querySelectorAll<HTMLElement>("[data-slide]")];
     let best = 0;
@@ -23,7 +24,11 @@ export function WorkDeck({ projects }: { projects: PublicProject[] }) {
         best = i;
       }
     });
-    setCurrent(best);
+    return best;
+  }
+
+  function sync() {
+    setCurrent(nearestIndex());
   }
 
   function go(dir: number) {
@@ -72,7 +77,9 @@ export function WorkDeck({ projects }: { projects: PublicProject[] }) {
     drag.current.hold = false;
     track.classList.remove("is-drag");
     const slides = [...track.querySelectorAll<HTMLElement>("[data-slide]")];
-    slides[current]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    const index = nearestIndex();
+    setCurrent(index);
+    slides[index]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }
 
   if (projects.length === 0) return null;
@@ -108,7 +115,10 @@ export function WorkDeck({ projects }: { projects: PublicProject[] }) {
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-void via-void/20 to-transparent" />
               <div className="absolute inset-x-7 bottom-6">
-                <p className="site-kicker">{String(index + 1).padStart(2, "0")}</p>
+                <p className="site-kicker">
+                  {String(index + 1).padStart(2, "0")} · {projectKindLabel(project.kind)}
+                  {project.location ? ` · ${project.location}` : ""}
+                </p>
                 <h2 className="display mt-2 text-4xl">{project.title}</h2>
               </div>
             </Link>

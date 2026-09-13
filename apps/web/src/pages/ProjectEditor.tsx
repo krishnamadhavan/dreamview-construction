@@ -5,6 +5,7 @@ import { api } from "../api";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ImageManager } from "../components/ImageManager";
 import { fromDatetimeLocal, localTimeZone, toDatetimeLocal } from "../lib/datetime";
+import { PROJECT_KINDS, type ProjectKind } from "../lib/projectKind";
 import { useToast } from "../toast";
 import type { Project, ProjectImage, ProjectStatus } from "../types";
 
@@ -16,6 +17,9 @@ export function ProjectEditorPage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [year, setYear] = useState("");
+  const [kind, setKind] = useState<ProjectKind>("residence");
   const [status, setStatus] = useState<ProjectStatus>("draft");
   const [publishLocal, setPublishLocal] = useState("");
   const [images, setImages] = useState<ProjectImage[]>([]);
@@ -42,6 +46,9 @@ export function ProjectEditorPage() {
     setProjectId(project.id);
     setTitle(project.title);
     setDescription(project.description);
+    setLocation(project.location);
+    setYear(project.year);
+    setKind(project.kind);
     setStatus(project.status);
     setPublishLocal(toDatetimeLocal(project.publishAt));
     setImages(project.images);
@@ -56,6 +63,9 @@ export function ProjectEditorPage() {
         const { project } = await api.createProject({
           title,
           description,
+          location,
+          year,
+          kind,
           status,
           publishAt: status === "scheduled" ? fromDatetimeLocal(publishLocal) : status === "published" ? new Date().toISOString() : null,
         });
@@ -66,6 +76,9 @@ export function ProjectEditorPage() {
         const { project } = await api.updateProject(projectId, {
           title,
           description,
+          location,
+          year,
+          kind,
           status,
           publishAt: status === "scheduled" ? fromDatetimeLocal(publishLocal) : status === "draft" ? null : undefined,
         });
@@ -130,6 +143,36 @@ export function ProjectEditorPage() {
             className="admin-field"
           />
         </label>
+        <div className="grid gap-5 sm:grid-cols-3">
+          <label className="block text-sm">
+            Type
+            <select value={kind} onChange={(event) => setKind(event.target.value as ProjectKind)} className="admin-field">
+              {PROJECT_KINDS.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm">
+            Location
+            <input
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              placeholder="Bengaluru"
+              className="admin-field"
+            />
+          </label>
+          <label className="block text-sm">
+            Year
+            <input
+              value={year}
+              onChange={(event) => setYear(event.target.value)}
+              placeholder="2024"
+              className="admin-field"
+            />
+          </label>
+        </div>
         <label className="block text-sm">
           Description
           <textarea

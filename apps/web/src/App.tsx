@@ -5,6 +5,7 @@ import { AppShell } from "./components/AppShell";
 import { LoginPage } from "./pages/Login";
 import { ProjectEditorPage } from "./pages/ProjectEditor";
 import { ProjectsPage } from "./pages/Projects";
+import { EnquiriesPage } from "./pages/Enquiries";
 import { SitePage } from "./pages/Site";
 import { HomePage } from "./public/HomePage";
 import { ProjectDetailPage } from "./public/ProjectDetailPage";
@@ -44,6 +45,7 @@ export function App() {
           }
         >
           <Route index element={<ProjectsPage />} />
+          <Route path="enquiries" element={<EnquiriesPage />} />
           <Route path="site" element={<SitePage />} />
           <Route path="projects/new" element={<ProjectEditorPage />} />
           <Route path="projects/:id" element={<ProjectEditorPage />} />

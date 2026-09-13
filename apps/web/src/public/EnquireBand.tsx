@@ -1,3 +1,5 @@
+import { telHref } from "../lib/whatsapp";
+import { EnquireDirect } from "./EnquireCta";
 import { EnquireForm } from "./HomeExtras";
 import { useSiteContent } from "./siteContent";
 
@@ -26,7 +28,7 @@ export function EnquireBand() {
             <div>
               <p className="site-kicker">Phone</p>
               <p className="mt-2 text-sm text-paper/70">
-                <a href={`tel:${phone.replace(/\s/g, "")}`}>{phone}</a>
+                <a href={telHref(phone)}>{phone}</a>
               </p>
             </div>
             <div>
@@ -36,8 +38,10 @@ export function EnquireBand() {
               </p>
             </div>
           </div>
+          <EnquireDirect />
         </div>
         <div className="site-in" style={{ ["--d" as string]: "120ms" }}>
+          <p className="site-kicker mb-6">Or write a brief</p>
           <EnquireForm />
         </div>
       </div>

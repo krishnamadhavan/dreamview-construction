@@ -47,30 +47,32 @@ export async function saveSiteContent(input: {
   }>;
 }): Promise<SiteContent> {
   const current = await ensureSettings();
-  const [settings] = await db
-    .update(siteSettings)
-    .set({ ...input.settings, updatedAt: new Date() })
-    .where(eq(siteSettings.id, current.id))
-    .returning();
+  return db.transaction(async (tx) => {
+    const [settings] = await tx
+      .update(siteSettings)
+      .set({ ...input.settings, updatedAt: new Date() })
+      .where(eq(siteSettings.id, current.id))
+      .returning();
 
-  await db.delete(siteEntries);
-  if (input.entries.length > 0) {
-    await db.insert(siteEntries).values(
-      input.entries.map((entry, index) => ({
-        id: entry.id,
-        kind: entry.kind,
-        title: entry.title,
-        subtitle: entry.subtitle,
-        body: entry.body,
-        imageUrl: entry.imageUrl,
-        sortOrder: entry.sortOrder ?? index,
-        updatedAt: new Date(),
-      })),
-    );
-  }
+    await tx.delete(siteEntries);
+    if (input.entries.length > 0) {
+      await tx.insert(siteEntries).values(
+        input.entries.map((entry, index) => ({
+          id: entry.id,
+          kind: entry.kind,
+          title: entry.title,
+          subtitle: entry.subtitle,
+          body: entry.body,
+          imageUrl: entry.imageUrl,
+          sortOrder: entry.sortOrder ?? index,
+          updatedAt: new Date(),
+        })),
+      );
+    }
 
-  const entries = await db.select().from(siteEntries).orderBy(asc(siteEntries.sortOrder), asc(siteEntries.createdAt));
-  return { settings: settings ?? current, entries };
+    const entries = await tx.select().from(siteEntries).orderBy(asc(siteEntries.sortOrder), asc(siteEntries.createdAt));
+    return { settings: settings ?? current, entries };
+  });
 }
 
 export async function setHeroImage(file: {

@@ -6,6 +6,7 @@ import { MediaImage } from "../components/MediaImage";
 import { StatusBadge } from "../components/StatusBadge";
 import { useToast } from "../toast";
 import { formatSchedule } from "../lib/datetime";
+import { projectKindLabel } from "../lib/projectKind";
 import type { Project } from "../types";
 
 export function ProjectsPage() {
@@ -76,7 +77,10 @@ export function ProjectsPage() {
                       {project.description || "No description"}
                     </p>
                     <p className="text-[11px] tracking-wide text-paper/40 uppercase">
-                      {project.images.length} {project.images.length === 1 ? "image" : "images"}
+                      {projectKindLabel(project.kind)}
+                      {project.location ? ` · ${project.location}` : ""}
+                      {project.year ? ` · ${project.year}` : ""}
+                      {` · ${project.images.length} ${project.images.length === 1 ? "image" : "images"}`}
                       {project.status === "scheduled" && project.publishAt
                         ? ` · live ${formatSchedule(project.publishAt)}`
                         : ""}
