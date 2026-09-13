@@ -4,8 +4,10 @@ import { api } from "../api";
 import type { PublicProject } from "../types";
 import { MediaImage } from "../components/MediaImage";
 import { EnquireBand } from "./EnquireBand";
-import { SiteFooter } from "./SiteFooter";
-import { SiteHeader } from "./SiteHeader";
+import { HeroSlideshow } from "./HeroSlideshow";
+import { HomeExtras } from "./HomeExtras";
+import { SiteFrame } from "./SiteFrame";
+import { entriesOf, useSiteContent } from "./siteContent";
 
 const SERVICES = [
   {
@@ -58,6 +60,7 @@ const STEPS = [
 ];
 
 export function HomePage() {
+  const site = useSiteContent();
   const [projects, setProjects] = useState<PublicProject[] | null>(null);
 
   useEffect(() => {
@@ -72,166 +75,152 @@ export function HomePage() {
   const hero = withPhotos[0];
   const work = projects ?? [];
   const photoCount = work.reduce((sum, project) => sum + project.images.length, 0);
+  const serviceEntries = entriesOf(site, "service");
+  const stepEntries = entriesOf(site, "step");
+  const servicesView = serviceEntries.length
+    ? serviceEntries.map((entry) => ({ title: entry.title, body: entry.body }))
+    : SERVICES;
+  const stepsView = stepEntries.length
+    ? stepEntries.map((entry, index) => ({
+        n: entry.subtitle || String(index + 1).padStart(2, "0"),
+        title: entry.title,
+        body: entry.body,
+      }))
+    : STEPS;
 
   return (
-    <div className="min-h-screen bg-paper">
-      <SiteHeader onInk />
+    <SiteFrame>
+      <HeroSlideshow projects={withPhotos} coverUrl={site?.settings.heroImageUrl || ""} />
 
-      <section className="relative min-h-[100svh] overflow-hidden bg-ink text-paper">
-        {hero ? (
-          <MediaImage
-            url={hero.images[0]?.url ?? ""}
-            alt={hero.images[0]?.alt || hero.title}
-            fit="hero"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(#4a433a_1px,transparent_1px),linear-gradient(90deg,#4a433a_1px,transparent_1px)] [background-size:56px_56px]" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-ink/25" />
-        <div className="relative flex min-h-[100svh] flex-col justify-end px-6 pt-28 pb-16 md:px-10 lg:px-16 lg:pb-20">
-          <p className="text-[11px] tracking-[0.32em] uppercase">Construction</p>
-          <h1 className="display mt-5 max-w-4xl text-[3.1rem] leading-[0.92] sm:text-6xl lg:text-7xl">
-            Buildings with weight, light, and a long life.
-          </h1>
-          <p className="mt-6 max-w-xl text-base leading-7 text-sand">
-            Dreamview plans and delivers construction with a studio’s eye — structure first, then the
-            rooms people actually inhabit.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center gap-8">
-            <a
-              href="#work"
-              className="text-[12px] tracking-[0.22em] uppercase underline-offset-8 hover:underline"
-            >
-              Selected work
-            </a>
-            <a
-              href="#contact"
-              className="text-[12px] tracking-[0.22em] text-sand uppercase underline-offset-8 hover:text-paper hover:underline"
-            >
-              Start a project
-            </a>
-          </div>
+      <section className="border-y border-white/10">
+        <div className="site-shell grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat value={projects === null ? "—" : String(work.length).padStart(2, "0")} label="Works in the record" count={projects === null ? undefined : work.length} delay="0ms" />
+          <Stat value={projects === null ? "—" : String(photoCount).padStart(2, "0")} label="Site photographs" count={projects === null ? undefined : photoCount} delay="80ms" />
+          <Stat value="04" label="Phases, brief to handover" count={4} delay="160ms" />
+          <Stat value="01" label="Contract through the build" count={1} delay="240ms" />
         </div>
       </section>
 
-      <section id="studio" className="scroll-mt-8 px-6 py-24 md:px-10 md:py-32 lg:px-16">
-        <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
-          <div>
-            <p className="text-[11px] tracking-[0.28em] text-ink-soft uppercase">The studio</p>
-            <h2 className="display mt-4 text-4xl leading-[1.05] md:text-5xl">
-              A construction practice that still draws.
+      <section id="studio" className="scroll-mt-24 py-28">
+        <div className="site-shell grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="site-mask overflow-hidden bg-[#161616]">
+            {hero ? (
+              <MediaImage
+                url={hero.images[1]?.url || hero.images[0]?.url || ""}
+                alt=""
+                fit="half"
+                className="aspect-[4/5] w-full object-cover"
+              />
+            ) : (
+              <div className="aspect-[4/5] bg-[#161616]" />
+            )}
+          </div>
+          <div className="site-in" style={{ ["--d" as string]: "120ms" }}>
+            <p className="site-kicker">Studio</p>
+            <h2 className="display mt-3 text-5xl leading-[0.95]">
+              {site?.settings.studioHeading || "A construction practice that still draws."}
             </h2>
-          </div>
-          <div className="space-y-6 text-[15px] leading-7 text-ink-soft">
-            <p>
-              We are builders first. The drawing office sits next to the site diary on purpose: every
-              line we put down has to be set out, poured, and stood under.
-            </p>
-            <p>
-              Dreamview takes a project from the first walk of the plot through structure, envelope,
-              and interiors. One team holds the brief, the programme, and the finish — so the
-              building that opens is the one that was promised.
-            </p>
-            <p>
-              Materials stay honest. Joints stay quiet. We would rather leave a wall that will age
-              well than one that photographs well for a week.
-            </p>
+            <div className="mt-6 space-y-4 text-[15px] leading-7 text-paper/60">
+              {(site?.settings.studioBody ||
+                "We are builders first. The drawing office sits next to the site diary on purpose: every line we put down has to be set out, poured, and stood under.\n\nDreamview takes a project from the first walk of the plot through structure, envelope, and interiors. One team holds the brief, the programme, and the finish.\n\nMaterials stay honest. Joints stay quiet. We would rather leave a wall that will age well than one that photographs well for a week.")
+                .split(/\n\n+/)
+                .map((para) => (
+                  <p key={para.slice(0, 24)}>{para}</p>
+                ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-line bg-ink px-6 py-16 text-paper md:px-10 lg:px-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat value={projects === null ? "—" : String(work.length).padStart(2, "0")} label="Works in the record" />
-          <Stat value={projects === null ? "—" : String(photoCount).padStart(2, "0")} label="Site photographs" />
-          <Stat value="04" label="Phases, brief to handover" />
-          <Stat value="01" label="Contract through the build" />
-        </div>
-      </section>
-
-      <section id="work" className="scroll-mt-8 px-6 py-24 md:px-10 md:py-32 lg:px-16">
-        <div className="flex flex-wrap items-end justify-between gap-6">
+      <section id="work" className="scroll-mt-24 py-28">
+        <div className="site-shell mb-12 flex flex-wrap items-end justify-between gap-6 site-in">
           <div>
-            <p className="text-[11px] tracking-[0.28em] text-ink-soft uppercase">Selected work</p>
-            <h2 className="display mt-3 text-4xl md:text-5xl">On site, as built</h2>
+            <p className="site-kicker">Selected work</p>
+            <h2 className="display mt-3 text-5xl">On site, as built</h2>
           </div>
-          <Link
-            to="/projects"
-            className="text-[12px] tracking-[0.2em] text-ink-soft uppercase underline-offset-8 hover:text-ink hover:underline"
-          >
+          <Link to="/projects" className="text-[12px] tracking-[0.2em] text-paper/50 uppercase hover:text-paper">
             Full index
           </Link>
         </div>
 
-        {projects === null && <p className="mt-16 text-sm text-ink-soft">Loading work…</p>}
+        {projects === null && <p className="site-shell text-sm text-paper/40">Loading work…</p>}
 
         {projects && work.length === 0 && (
-          <p className="mt-16 max-w-md text-sm leading-6 text-ink-soft">
+          <p className="site-shell max-w-md text-sm leading-6 text-paper/50">
             Published projects will appear here. Until then, the studio is on site.
           </p>
         )}
 
         {work.length > 0 && (
-          <div className="mt-16 space-y-28">
-            {work.map((project, index) => (
+          <div className="site-shell space-y-16">
+            {work.slice(0, 3).map((project, index) => (
               <WorkFeature key={project.id} project={project} index={index} />
             ))}
           </div>
         )}
       </section>
 
-      <section id="services" className="scroll-mt-8 border-t border-line bg-white px-6 py-24 md:px-10 md:py-32 lg:px-16">
-        <div className="max-w-2xl">
-          <p className="text-[11px] tracking-[0.28em] text-ink-soft uppercase">Capabilities</p>
-          <h2 className="display mt-3 text-4xl md:text-5xl">What we take on</h2>
-          <p className="mt-5 text-sm leading-7 text-ink-soft">
-            A single practice covering the work a site actually needs — not a catalogue of extras.
-          </p>
+      <section id="services" className="scroll-mt-24 py-28">
+        <div className="site-shell">
+          <div className="site-in">
+            <p className="site-kicker">Capabilities</p>
+            <h2 className="display mt-3 text-5xl">What we take on</h2>
+          </div>
+          <ul className="mt-12 grid gap-x-16 sm:grid-cols-2">
+            {servicesView.map((service, index) => (
+              <li key={service.title} className="site-in border-t border-white/10 py-7" style={{ ["--d" as string]: `${(index % 2) * 80}ms` }}>
+                <p className="site-kicker">{String(index + 1).padStart(2, "0")}</p>
+                <h3 className="display mt-3 text-3xl">{service.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-paper/50">{service.body}</p>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="mt-16 grid gap-x-12 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
-          {SERVICES.map((service, index) => (
-            <li key={service.title} className="border-t border-line pt-6">
-              <p className="text-[11px] tracking-[0.2em] text-clay uppercase">
-                {String(index + 1).padStart(2, "0")}
-              </p>
-              <h3 className="display mt-3 text-2xl">{service.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-ink-soft">{service.body}</p>
-            </li>
-          ))}
-        </ul>
       </section>
 
-      <section id="process" className="scroll-mt-8 px-6 py-24 md:px-10 md:py-32 lg:px-16">
-        <div className="max-w-2xl">
-          <p className="text-[11px] tracking-[0.28em] text-ink-soft uppercase">Method</p>
-          <h2 className="display mt-3 text-4xl md:text-5xl">How a job runs</h2>
-          <p className="mt-5 text-sm leading-7 text-ink-soft">
-            Four stages, one team. We do not hand a drawing over a wall and hope the site invents the rest.
-          </p>
+      <section id="process" className="scroll-mt-24 py-28">
+        <div className="site-shell">
+          <div className="site-in">
+            <p className="site-kicker">Method</p>
+            <h2 className="display mt-3 text-5xl">How a job runs</h2>
+          </div>
+          <ol className="mt-12 grid gap-8 md:grid-cols-4">
+            {stepsView.map((step, index) => (
+              <li key={step.n} className="site-in border-t border-white/10 pt-6" style={{ ["--d" as string]: `${index * 80}ms` }}>
+                <p className="site-kicker">{step.n}</p>
+                <h3 className="display mt-3 text-3xl">{step.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-paper/50">{step.body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
-        <ol className="mt-16 grid gap-0 border-t border-line md:grid-cols-4">
-          {STEPS.map((step) => (
-            <li key={step.n} className="border-line py-10 md:border-r md:px-6 md:py-12 md:first:pl-0 md:last:border-r-0 md:last:pr-0">
-              <p className="font-mono text-xs tracking-[0.18em] text-clay">{step.n}</p>
-              <h3 className="display mt-4 text-3xl">{step.title}</h3>
-              <p className="mt-4 text-sm leading-6 text-ink-soft">{step.body}</p>
-            </li>
-          ))}
-        </ol>
       </section>
 
+      <HomeExtras
+        noteImages={work.flatMap((project) => project.images.slice(1, 2).map((image) => image.url)).slice(0, 2)}
+      />
       <EnquireBand />
-      <SiteFooter />
-    </div>
+    </SiteFrame>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  value,
+  label,
+  count,
+  delay = "0ms",
+}: {
+  value: string;
+  label: string;
+  count?: number;
+  delay?: string;
+}) {
   return (
-    <div>
-      <p className="display text-5xl leading-none md:text-6xl">{value}</p>
-      <p className="mt-3 text-[11px] tracking-[0.2em] text-sand uppercase">{label}</p>
+    <div className="site-in" style={{ ["--d" as string]: delay }}>
+      <p className="display text-5xl leading-none" {...(count != null ? { "data-count": count } : {})}>
+        {count != null ? "00" : value}
+      </p>
+      <p className="mt-2 text-[11px] tracking-[0.18em] text-paper/40 uppercase">{label}</p>
     </div>
   );
 }
@@ -242,10 +231,10 @@ function WorkFeature({ project, index }: { project: PublicProject; index: number
   const reversed = index % 2 === 1;
 
   return (
-    <article>
+    <article className="site-in">
       <div className={`grid items-end gap-8 lg:grid-cols-12 ${reversed ? "lg:[&>*:first-child]:order-2" : ""}`}>
         <div className="lg:col-span-8">
-          <div className="overflow-hidden bg-sand">
+          <div className="site-mask overflow-hidden bg-[#161616]">
             {cover ? (
               <MediaImage
                 url={cover.url}
@@ -254,27 +243,25 @@ function WorkFeature({ project, index }: { project: PublicProject; index: number
                 className="aspect-[16/10] w-full object-cover"
               />
             ) : (
-              <div className="flex aspect-[16/10] items-center justify-center text-[11px] tracking-[0.2em] text-ink-soft uppercase">
+              <div className="flex aspect-[16/10] items-center justify-center text-[11px] tracking-[0.2em] text-paper/40 uppercase">
                 Photography forthcoming
               </div>
             )}
           </div>
         </div>
         <div className="lg:col-span-4 lg:pb-2">
-          <p className="text-[11px] tracking-[0.24em] text-ink-soft uppercase">
-            {String(index + 1).padStart(2, "0")}
-          </p>
+          <p className="site-kicker">{String(index + 1).padStart(2, "0")}</p>
           <h3 className="display mt-3 text-4xl">
-            <Link to={`/projects/${project.slug}`} className="hover:text-clay">
+            <Link to={`/projects/${project.slug}`} className="hover:text-gold">
               {project.title}
             </Link>
           </h3>
           {project.description && (
-            <p className="mt-4 text-sm leading-7 text-ink-soft line-clamp-5">{project.description}</p>
+            <p className="mt-4 text-sm leading-7 text-paper/50 line-clamp-5">{project.description}</p>
           )}
           <Link
             to={`/projects/${project.slug}`}
-            className="mt-6 inline-block text-[11px] tracking-[0.2em] text-ink uppercase underline-offset-8 hover:underline"
+            className="mt-6 inline-block text-[11px] tracking-[0.2em] text-paper uppercase underline-offset-8 hover:underline"
           >
             Open the project
           </Link>
@@ -283,7 +270,7 @@ function WorkFeature({ project, index }: { project: PublicProject; index: number
       {extras.length > 0 && (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {extras.map((image) => (
-            <div key={image.id} className="overflow-hidden bg-sand">
+            <div key={image.id} className="site-mask overflow-hidden bg-[#161616]">
               <MediaImage
                 url={image.url}
                 alt={image.alt || project.title}

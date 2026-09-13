@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ArrowIcon } from "../components/ArrowIcon";
 import { api } from "../api";
 import { MediaImage } from "../components/MediaImage";
 import { StatusBadge } from "../components/StatusBadge";
@@ -25,28 +26,24 @@ export function ProjectsPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs tracking-[0.2em] text-ink-soft uppercase">Content</p>
-          <h1 className="display mt-1 text-4xl">Projects</h1>
+          <p className="text-[11px] tracking-[0.3em] text-gold uppercase">Archive</p>
+          <h1 className="display mt-1 text-5xl">Work</h1>
         </div>
-        <Link
-          to="/admin/projects/new"
-          className="rounded-md bg-clay px-4 py-2.5 text-sm text-white hover:bg-clay-dark"
-        >
+        <Link to="/admin/projects/new" className="admin-btn">
           New project
+          <ArrowIcon />
         </Link>
       </div>
 
-      {projects === null && <p className="mt-10 text-sm text-ink-soft">Loading…</p>}
+      {projects === null && <p className="mt-10 text-sm text-paper/50">Loading…</p>}
 
       {projects && projects.length === 0 && (
-        <div className="mt-10 rounded-lg border border-dashed border-line bg-white px-8 py-16 text-center">
+        <div className="mt-10 border border-dashed border-white/15 px-8 py-16 text-center">
           <p className="display text-3xl">No projects yet</p>
-          <p className="mt-3 text-sm text-ink-soft">Create the first one and attach site photography.</p>
-          <Link
-            to="/admin/projects/new"
-            className="mt-6 inline-block rounded-md bg-ink px-4 py-2.5 text-sm text-paper"
-          >
+          <p className="mt-3 text-sm text-paper/50">Create the first one and attach site photography.</p>
+          <Link to="/admin/projects/new" className="admin-btn mt-6">
             Create a project
+            <ArrowIcon />
           </Link>
         </div>
       )}
@@ -59,13 +56,13 @@ export function ProjectsPage() {
               <li key={project.id}>
                 <Link
                   to={`/admin/projects/${project.id}`}
-                  className="block overflow-hidden rounded-lg border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="block overflow-hidden border border-white/10 bg-[#111] transition hover:-translate-y-0.5 hover:border-gold/50"
                 >
-                  <div className="aspect-[16/10] bg-sand">
+                  <div className="aspect-[16/10] bg-[#161616]">
                     {cover ? (
                       <MediaImage url={cover.url} alt={cover.alt || project.title} fit="thumb" className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs tracking-wide text-ink-soft uppercase">
+                      <div className="flex h-full items-center justify-center text-xs tracking-wide text-paper/40 uppercase">
                         No images
                       </div>
                     )}
@@ -75,10 +72,10 @@ export function ProjectsPage() {
                       <h2 className="display text-2xl leading-tight">{project.title}</h2>
                       <StatusBadge status={project.status} />
                     </div>
-                    <p className="line-clamp-2 text-sm text-ink-soft">
+                    <p className="line-clamp-2 text-sm text-paper/50">
                       {project.description || "No description"}
                     </p>
-                    <p className="text-[11px] tracking-wide text-ink-soft uppercase">
+                    <p className="text-[11px] tracking-wide text-paper/40 uppercase">
                       {project.images.length} {project.images.length === 1 ? "image" : "images"}
                       {project.status === "scheduled" && project.publishAt
                         ? ` · live ${formatSchedule(project.publishAt)}`

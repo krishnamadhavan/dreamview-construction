@@ -1,4 +1,4 @@
-import type { Admin, ApiError, Project, ProjectImage, PublicProject } from "./types";
+import type { Admin, ApiError, Project, ProjectImage, PublicProject, SiteContent } from "./types";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -79,4 +79,20 @@ export const api = {
     }),
   deleteImage: (projectId: string, imageId: string) =>
     request<void>(`/api/projects/${projectId}/images/${imageId}`, { method: "DELETE" }),
+  getPublicSite: () => request<{ site: SiteContent }>("/api/public/site"),
+  getSite: () => request<{ site: SiteContent }>("/api/site"),
+  saveSite: (site: SiteContent) =>
+    request<{ site: SiteContent }>("/api/site", {
+      method: "PUT",
+      body: JSON.stringify(site),
+    }),
+  uploadSiteHero: (file: File) => {
+    const form = new FormData();
+    form.append("image", file);
+    return request<{ site: SiteContent }>("/api/site/hero", {
+      method: "POST",
+      body: form,
+    });
+  },
+  deleteSiteHero: () => request<{ site: SiteContent }>("/api/site/hero", { method: "DELETE" }),
 };

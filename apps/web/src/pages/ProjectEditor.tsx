@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowIcon } from "../components/ArrowIcon";
 import { api } from "../api";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ImageManager } from "../components/ImageManager";
@@ -92,27 +93,27 @@ export function ProjectEditorPage() {
   }
 
   if (!loaded) {
-    return <p className="text-sm text-ink-soft">Loading…</p>;
+    return <p className="text-sm text-paper/50">Loading…</p>;
   }
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link to="/admin" className="text-sm text-ink-soft hover:text-ink">
-        ← Projects
+      <Link to="/admin" className="text-sm text-paper/50 hover:text-paper">
+        ← Work
       </Link>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs tracking-[0.2em] text-ink-soft uppercase">
+          <p className="text-[11px] tracking-[0.3em] text-gold uppercase">
             {isNew ? "New" : "Edit"}
           </p>
-          <h1 className="display mt-1 text-4xl">{title || "Untitled project"}</h1>
-          {slug && <p className="mt-2 font-mono text-xs text-ink-soft">/{slug}</p>}
+          <h1 className="display mt-1 text-5xl">{title || "Untitled project"}</h1>
+          {slug && <p className="mt-2 font-mono text-xs text-paper/40">/{slug}</p>}
         </div>
         {projectId && (
           <button
             type="button"
             onClick={() => setConfirmDelete(true)}
-            className="text-sm text-clay hover:text-clay-dark"
+            className="text-sm text-gold/80 hover:text-gold"
           >
             Delete
           </button>
@@ -126,7 +127,7 @@ export function ProjectEditorPage() {
             required
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 outline-none focus:border-clay"
+            className="admin-field"
           />
         </label>
         <label className="block text-sm">
@@ -135,7 +136,7 @@ export function ProjectEditorPage() {
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows={8}
-            className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 outline-none focus:border-clay"
+            className="admin-field"
           />
         </label>
         <fieldset className="text-sm">
@@ -145,7 +146,7 @@ export function ProjectEditorPage() {
               <label
                 key={value}
                 className={`cursor-pointer rounded-md border px-4 py-2 capitalize ${
-                  status === value ? "border-ink bg-ink text-paper" : "border-line bg-white"
+                  status === value ? "border-gold bg-gold text-void" : "border-white/15 bg-[#161616]"
                 }`}
               >
                 <input
@@ -175,26 +176,23 @@ export function ProjectEditorPage() {
               required
               value={publishLocal}
               onChange={(event) => setPublishLocal(event.target.value)}
-              className="mt-2 w-full max-w-sm rounded-md border border-line bg-white px-3 py-2.5 outline-none focus:border-clay"
+              className="admin-field max-w-sm"
             />
-            <span className="mt-2 block text-xs text-ink-soft">
+            <span className="mt-2 block text-xs text-paper/40">
               Local time ({localTimeZone()}). Hidden on the public site until this moment.
             </span>
           </label>
         )}
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-md bg-clay px-5 py-2.5 text-sm text-white hover:bg-clay-dark disabled:opacity-60"
-        >
+        <button type="submit" disabled={saving} className="admin-btn">
           {saving ? "Saving…" : projectId ? "Save changes" : "Create project"}
+          <ArrowIcon />
         </button>
       </form>
 
       {projectId ? (
         <ImageManager projectId={projectId} images={images} onChange={setImages} />
       ) : (
-        <p className="mt-10 rounded-md border border-dashed border-line bg-white px-4 py-6 text-sm text-ink-soft">
+        <p className="mt-10 border border-dashed border-white/15 px-4 py-6 text-sm text-paper/50">
           Save the project first to upload images to Cloudinary.
         </p>
       )}

@@ -1,22 +1,28 @@
 import { Link, NavLink } from "react-router-dom";
+import { ArrowIcon } from "../components/ArrowIcon";
 
 export function SiteHeader({ onInk = false }: { onInk?: boolean }) {
-  const tone = onInk
-    ? "text-paper [&_a]:text-paper/80 [&_a:hover]:text-paper [&_a.active]:text-paper"
-    : "text-ink [&_a]:text-ink-soft [&_a:hover]:text-ink [&_a.active]:text-ink";
-
+  void onInk;
   return (
-    <header className={`absolute inset-x-0 top-0 z-30 ${tone}`}>
-      <div className="flex items-center justify-between px-6 py-6 md:px-10 lg:px-16">
-        <Link to="/" className="!text-inherit">
-          <p className="text-[11px] tracking-[0.32em] uppercase">Dreamview</p>
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(28,28,28,0.55)] backdrop-blur-md">
+      <div className="site-shell flex items-center justify-between gap-6 py-4">
+        <Link to="/" className="text-[13px] tracking-[0.4em] text-paper uppercase">
+          Dreamview
         </Link>
-        <nav className="flex items-center gap-6 text-[11px] tracking-[0.2em] uppercase sm:gap-8 sm:text-[12px]">
-          <a href="/#studio">Studio</a>
-          <NavLink to="/projects" className={({ isActive }) => (isActive ? "active" : "")}>
-            Projects
+        <nav className="flex items-center gap-7 text-[12px] tracking-[0.18em] text-paper/80 uppercase">
+          <NavLink to="/projects" className={({ isActive }) => (isActive ? "text-paper" : "hover:text-paper")}>
+            Work
           </NavLink>
-          <a href="/#contact">Contact</a>
+          <a href="/#studio" className="hover:text-paper">
+            Studio
+          </a>
+          <a href="/#process" className="hover:text-paper">
+            Method
+          </a>
+          <a href="/#contact" className="site-ask">
+            Enquire
+            <ArrowIcon />
+          </a>
         </nav>
       </div>
     </header>

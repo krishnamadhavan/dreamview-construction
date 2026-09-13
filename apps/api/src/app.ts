@@ -16,6 +16,7 @@ import { authRoutes } from "./modules/auth/routes.js";
 import { cronRoutes } from "./modules/projects/cron-routes.js";
 import { publicProjectRoutes } from "./modules/projects/public-routes.js";
 import { projectRoutes } from "./modules/projects/routes.js";
+import { siteRoutes } from "./modules/site/routes.js";
 import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_PROJECT, storageReady } from "./storage/cloudinary.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -128,6 +129,7 @@ export async function buildApp() {
   await app.register(cronRoutes);
   await app.register(publicProjectRoutes);
   await app.register(projectRoutes);
+  await app.register(siteRoutes);
 
   if (config.isProd) {
     const dist = webDistDir();

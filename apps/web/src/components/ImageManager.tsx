@@ -101,11 +101,11 @@ export function ImageManager({
       <div className="flex items-end justify-between gap-4">
         <div>
           <h2 className="display text-2xl">Images</h2>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-1 text-sm text-paper/50">
             Stored on Cloudinary. First image is the cover. Drag to reorder.
           </p>
         </div>
-        <span className="text-xs tracking-wide text-ink-soft uppercase">{images.length} / 24</span>
+        <span className="text-xs tracking-wide text-paper/40 uppercase">{images.length} / 24</span>
       </div>
 
       <button
@@ -122,11 +122,11 @@ export function ImageManager({
           if (event.dataTransfer.files.length) void upload(event.dataTransfer.files);
         }}
         className={`mt-5 flex w-full flex-col items-center justify-center rounded-lg border border-dashed px-6 py-10 text-center transition ${
-          dragOver ? "border-clay bg-sand" : "border-line bg-white hover:border-clay/60"
+          dragOver ? "border-gold bg-gold/10" : "border-white/15 bg-[#161616] hover:border-gold/50"
         }`}
       >
         <p className="text-sm font-medium">{uploading ? "Uploading…" : "Drop images here or click to browse"}</p>
-        <p className="mt-1 text-xs text-ink-soft">JPEG, PNG, WebP, AVIF · up to 10 MB each</p>
+        <p className="mt-1 text-xs text-paper/40">JPEG, PNG, WebP, AVIF · up to 10 MB each</p>
         <input
           ref={inputRef}
           type="file"
@@ -149,9 +149,9 @@ export function ImageManager({
               onDragStart={() => setDragId(image.id)}
               onDragOver={(event) => event.preventDefault()}
               onDrop={() => onDropImage(image.id)}
-              className="overflow-hidden rounded-lg border border-line bg-white"
+              className="overflow-hidden border border-white/10 bg-[#111]"
             >
-              <div className="relative aspect-[4/3] bg-sand">
+              <div className="relative aspect-[4/3] bg-[#161616]">
                 <MediaImage
                   url={image.url}
                   alt={image.alt || image.storageKey}
@@ -159,7 +159,7 @@ export function ImageManager({
                   className="h-full w-full object-cover"
                 />
                 {index === 0 && (
-                  <span className="absolute top-3 left-3 rounded-full bg-ink px-2 py-0.5 text-[10px] tracking-wide text-paper uppercase">
+                  <span className="absolute top-3 left-3 rounded-full bg-gold px-2 py-0.5 text-[10px] tracking-wide text-void uppercase">
                     Cover
                   </span>
                 )}
@@ -168,11 +168,11 @@ export function ImageManager({
                 <input
                   defaultValue={image.alt}
                   placeholder="Alt text"
-                  className="w-full rounded-md border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-clay"
+                  className="admin-field !mt-0 text-sm"
                   onBlur={(event) => void saveAlt(image, event.target.value)}
                 />
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-ink-soft">{Math.round(image.sizeBytes / 1024)} KB</span>
+                  <span className="text-[11px] text-paper/40">{Math.round(image.sizeBytes / 1024)} KB</span>
                   <button
                     type="button"
                     disabled={removing}
@@ -180,7 +180,7 @@ export function ImageManager({
                       if (removingLock.current) return;
                       setPendingRemove(image);
                     }}
-                    className="text-xs text-clay hover:text-clay-dark disabled:cursor-not-allowed disabled:opacity-50"
+                    className="text-xs text-gold/80 hover:text-gold disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {removing && pendingRemove?.id === image.id ? "Removing…" : "Remove"}
                   </button>

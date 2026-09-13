@@ -44,6 +44,44 @@ export type PublicProject = {
   images: PublicProjectImage[];
 };
 
+export type SiteEntryKind =
+  | "person"
+  | "voice"
+  | "award"
+  | "journal"
+  | "faq"
+  | "client"
+  | "service"
+  | "step";
+
+export type SiteSettings = {
+  studioHeading: string;
+  studioBody: string;
+  territoryHeading: string;
+  territoryBody: string;
+  enquireHeading: string;
+  enquireBody: string;
+  phone: string;
+  email: string;
+  studioNote: string;
+  heroImageUrl: string;
+};
+
+export type SiteEntry = {
+  id: string;
+  kind: SiteEntryKind;
+  title: string;
+  subtitle: string;
+  body: string;
+  imageUrl: string;
+  sortOrder: number;
+};
+
+export type SiteContent = {
+  settings: SiteSettings;
+  entries: SiteEntry[];
+};
+
 export type ApiError = {
   error: {
     code: string;

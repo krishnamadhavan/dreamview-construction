@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={toast.id}
             className={`rounded-md px-4 py-3 text-sm shadow-lg ${
-              toast.tone === "err" ? "bg-clay text-white" : "bg-ink text-paper"
+              toast.tone === "err" ? "bg-gold text-void" : "bg-[#161616] text-paper border border-white/10"
             }`}
           >
             {toast.message}

@@ -2,6 +2,16 @@ import { relations } from "drizzle-orm";
 import { integer, pgEnum, pgTable, text, timestamp, uuid, index } from "drizzle-orm/pg-core";
 
 export const projectStatusEnum = pgEnum("project_status", ["draft", "scheduled", "published"]);
+export const siteEntryKindEnum = pgEnum("site_entry_kind", [
+  "person",
+  "voice",
+  "award",
+  "journal",
+  "faq",
+  "client",
+  "service",
+  "step",
+]);
 
 export const admins = pgTable("admins", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -57,6 +67,41 @@ export const projectImagesRelations = relations(projectImages, ({ one }) => ({
   }),
 }));
 
+export const siteSettings = pgTable("site_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioHeading: text("studio_heading").notNull().default("A construction practice that still draws."),
+  studioBody: text("studio_body").notNull().default(""),
+  territoryHeading: text("territory_heading").notNull().default("Where we work"),
+  territoryBody: text("territory_body").notNull().default(""),
+  enquireHeading: text("enquire_heading").notNull().default("Tell us about the site."),
+  enquireBody: text("enquire_body").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  email: text("email").notNull().default(""),
+  studioNote: text("studio_note").notNull().default("By appointment"),
+  heroImageUrl: text("hero_image_url").notNull().default(""),
+  heroImageKey: text("hero_image_key").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const siteEntries = pgTable(
+  "site_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: siteEntryKindEnum("kind").notNull(),
+    title: text("title").notNull().default(""),
+    subtitle: text("subtitle").notNull().default(""),
+    body: text("body").notNull().default(""),
+    imageUrl: text("image_url").notNull().default(""),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("site_entries_kind_sort_idx").on(table.kind, table.sortOrder)],
+);
+
 export type Project = typeof projects.$inferSelect;
 export type ProjectImage = typeof projectImages.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type SiteEntry = typeof siteEntries.$inferSelect;
+export type SiteEntryKind = (typeof siteEntryKindEnum.enumValues)[number];

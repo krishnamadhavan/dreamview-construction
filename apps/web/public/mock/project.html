@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Project — Dreamview mock</title>
+    <link rel="stylesheet" href="./mock.css" />
+  </head>
+  <body>
+    <div class="progress"></div>
+    <p class="tag">Mock · <a href="./projects.html">work</a></p>
+    <header class="nav">
+      <div class="shell">
+        <a class="logo" href="./index.html">Dreamview</a>
+        <nav class="links">
+          <a href="./projects.html">Work</a>
+          <a href="./index.html#studio">Studio</a>
+          <a href="./index.html#method">Method</a>
+          <a class="ask-btn" href="./index.html#enquire">Enquire <svg viewBox="0 0 18 10" aria-hidden="true"><path d="M1 5h14M11 1.5 16 5l-5 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="shot">
+      <img id="hero" alt="" />
+      <div class="veil"></div>
+      <div class="shell shot-copy">
+        <p class="kicker" id="kicker"></p>
+        <h1 class="serif" id="title"></h1>
+      </div>
+    </section>
+
+    <div class="facts">
+      <div class="shell">
+        <div class="in"><p class="kicker">Type</p><p id="type"></p></div>
+        <div class="in" style="--d:80ms"><p class="kicker">Status</p><p>Public record</p></div>
+        <div class="in" style="--d:160ms"><p class="kicker">Contract</p><p>One team</p></div>
+      </div>
+    </div>
+
+    <section class="body"><div class="shell in"><p id="blurb"></p></div></section>
+    <section class="pics shell" id="pics"></section>
+
+    <div class="shell">
+      <a class="next in" id="next" href="./projects.html">
+        <div>
+          <p class="kicker">Next</p>
+          <h2 class="serif" id="next-title">All work</h2>
+        </div>
+        <span class="dim">Open →</span>
+      </a>
+    </div>
+
+    <footer class="foot">
+      <div class="shell">
+        <div class="legal" style="margin: 0; padding-top: 0; border: 0">
+          <span>Dreamview</span>
+          <a href="./index.html#enquire">Enquire</a>
+        </div>
+      </div>
+    </footer>
+    <script>
+      const all = {
+        palace: {
+          n: "01 · Residence", kind: "Residence", title: "Dreamview Palace",
+          blurb: "Structure, envelope, and the rooms inside held as one contract.",
+          next: ["vincent", "Vincent Residency"],
+          images: [
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_2000,q_auto,f_auto/v1787422033/projects/5cf5d9d8-0642-4e0f-a594-bd3efe48435f/home-img1-9d0c6766-webp.webp",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1600,q_auto,f_auto/v1787422051/projects/5cf5d9d8-0642-4e0f-a594-bd3efe48435f/home-img2-2de78ace-jpg.jpg",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1200,q_auto,f_auto/v1787422052/projects/5cf5d9d8-0642-4e0f-a594-bd3efe48435f/home-img3-5ec57779-jpg.jpg",
+          ],
+        },
+        vincent: {
+          n: "02 · Residence", kind: "Residence", title: "Vincent Residency",
+          blurb: "A house held by one superintendent from brief to handover.",
+          next: ["mysore", "Mysore Palace"],
+          images: [
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_2000,q_auto,f_auto/v1787507374/projects/87615122-5bd4-495e-9765-c9d01d5b6027/h-img4-dbd5f1d5-avif.avif",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1600,q_auto,f_auto/v1787507323/projects/87615122-5bd4-495e-9765-c9d01d5b6027/h-img3-887c4c6e-avif.avif",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1200,q_auto,f_auto/v1787507385/projects/87615122-5bd4-495e-9765-c9d01d5b6027/h-img2-9b61bd15-jpg.jpg",
+          ],
+        },
+        mysore: {
+          n: "03 · Restoration", kind: "Restoration", title: "Mysore Palace",
+          blurb: "Older fabric kept honest. Repair what should stay.",
+          next: ["study", "Test Proj 2"],
+          images: [
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_2000,q_auto,f_auto/v1787503374/projects/7d0c0272-6451-4539-81f7-8adbc57f25f2/h-img1-1e73cb44-jpg.jpg",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1600,q_auto,f_auto/v1787503376/projects/7d0c0272-6451-4539-81f7-8adbc57f25f2/h-img2-55903d87-jpg.jpg",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1200,q_auto,f_auto/v1787503378/projects/7d0c0272-6451-4539-81f7-8adbc57f25f2/h-img3-cd9dea46-avif.avif",
+          ],
+        },
+        study: {
+          n: "04 · Study", kind: "Study", title: "Test Proj 2",
+          blurb: "A study in the public record. Rename it in admin when the job is named.",
+          next: ["palace", "Dreamview Palace"],
+          images: [
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_2000,q_auto,f_auto/v1789113822/projects/d9ef0195-5a4f-4f0a-bb45-6d206212ebba/home-img1-ccd95ee7-webp.webp",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1600,q_auto,f_auto/v1789113842/projects/d9ef0195-5a4f-4f0a-bb45-6d206212ebba/h-img2-9872a2ad-jpg.jpg",
+            "https://res.cloudinary.com/mrooyq3a/image/upload/w_1200,q_auto,f_auto/v1789113845/projects/d9ef0195-5a4f-4f0a-bb45-6d206212ebba/h-img3-cf04a265-avif.avif",
+          ],
+        },
+      };
+      const p = all[new URLSearchParams(location.search).get("p")] || all.palace;
+      document.title = p.title + " — mock";
+      document.getElementById("kicker").textContent = p.n;
+      document.getElementById("title").textContent = p.title;
+      document.getElementById("type").textContent = p.kind;
+      document.getElementById("blurb").textContent = p.blurb;
+      document.getElementById("hero").src = p.images[0];
+      document.getElementById("hero").alt = p.title;
+      document.getElementById("pics").innerHTML = p.images.slice(1).map((src, i) => `<figure class="mask in" style="--d:${i * 80}ms"><img src="${src}" alt="" /></figure>`).join("");
+      document.getElementById("next").href = `./project.html?p=${p.next[0]}`;
+      document.getElementById("next-title").textContent = p.next[1];
+    </script>
+    <script src="./mock.js"></script>
+  </body>
+</html>
