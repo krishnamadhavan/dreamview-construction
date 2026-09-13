@@ -100,7 +100,13 @@ export function HomePage() {
   return (
     <SiteFrame>
       <StudioJsonLd />
-      <HeroSlideshow projects={withPhotos} coverUrl={site?.settings.heroImageUrl || ""} />
+      <HeroSlideshow
+        projects={withPhotos}
+        coverUrl={site?.settings.heroImageUrl || ""}
+        kicker={site?.settings.heroKicker}
+        heading={site?.settings.heroHeading}
+        body={site?.settings.heroBody}
+      />
 
       <section className="border-y border-white/10">
         <div className="site-shell grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4">

@@ -106,13 +106,21 @@ export const api = {
     });
   },
   deleteSiteHero: () => request<{ site: SiteContent }>("/api/site/hero", { method: "DELETE" }),
+  uploadSiteImage: (file: File) => {
+    const form = new FormData();
+    form.append("image", file);
+    return request<{ url: string }>("/api/site/image", {
+      method: "POST",
+      body: form,
+    });
+  },
   sendEnquiry: (body: {
     name: string;
     email: string;
     phone?: string;
     site: string;
     brief: string;
-    company?: string;
+    website_url?: string;
   }) =>
     request<{ ok: true }>("/api/public/enquire", {
       method: "POST",

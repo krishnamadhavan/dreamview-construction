@@ -19,8 +19,12 @@ export const siteSettingsBody = z.object({
   enquireHeading: z.string().max(200),
   enquireBody: z.string().max(8_000),
   phone: z.string().max(80),
+  whatsapp: z.string().max(80),
   email: z.string().max(200),
   studioNote: z.string().max(200),
+  heroKicker: z.string().max(80),
+  heroHeading: z.string().max(300),
+  heroBody: z.string().max(800),
 });
 
 export const siteEntryBody = z.object({

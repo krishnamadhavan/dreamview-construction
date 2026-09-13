@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MediaImage } from "../components/MediaImage";
-import { DEFAULT_HERO_COVER, resolveHeroCover } from "../lib/hero";
+import {
+  DEFAULT_HERO_BODY,
+  DEFAULT_HERO_COVER,
+  DEFAULT_HERO_KICKER,
+  heroHeadingLines,
+  resolveHeroCover,
+} from "../lib/hero";
 import type { PublicProject } from "../types";
 
 type Slide = {
@@ -12,7 +18,19 @@ type Slide = {
   alt: string;
 };
 
-export function HeroSlideshow({ projects, coverUrl = "" }: { projects: PublicProject[]; coverUrl?: string }) {
+export function HeroSlideshow({
+  projects,
+  coverUrl = "",
+  kicker,
+  heading,
+  body,
+}: {
+  projects: PublicProject[];
+  coverUrl?: string;
+  kicker?: string;
+  heading?: string;
+  body?: string;
+}) {
   const projectSlides: Slide[] = projects
     .filter((project) => project.images[0])
     .map((project) => ({
@@ -129,21 +147,17 @@ export function HeroSlideshow({ projects, coverUrl = "" }: { projects: PublicPro
 
       <div className="site-shell relative z-[6] flex min-h-[100svh] flex-col justify-end pb-[11vh]">
         <p className={`site-kicker ${ready ? "site-fade" : ""}`} style={{ animationDelay: "0.15s" }}>
-          Construction practice
+          {kicker?.trim() || DEFAULT_HERO_KICKER}
         </p>
         <h1 className="display mt-4 text-[clamp(3.6rem,9vw,8rem)] leading-none">
-          <span className="site-cut">
-            <span>We build</span>
-          </span>
-          <span className="site-cut">
-            <span className="italic text-gold">great</span>
-          </span>
-          <span className="site-cut">
-            <span>buildings.</span>
-          </span>
+          {heroHeadingLines(heading).map((line, index) => (
+            <span key={`${index}-${line.text}`} className="site-cut">
+              <span className={line.accent ? "italic text-gold" : undefined}>{line.text}</span>
+            </span>
+          ))}
         </h1>
         <p className={`mt-6 max-w-lg text-[15px] leading-7 text-paper/75 ${ready ? "site-fade" : ""}`} style={{ animationDelay: "0.55s" }}>
-          Structure first, then the rooms people inhabit. One team from the first walk of the plot to handover.
+          {body?.trim() || DEFAULT_HERO_BODY}
         </p>
         <div className={`mt-8 flex flex-wrap items-center gap-7 ${ready ? "site-fade" : ""}`} style={{ animationDelay: "0.7s" }}>
           <a href="#work" className="border-b border-current pb-0.5 text-[12px] tracking-[0.2em] uppercase">

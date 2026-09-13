@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../api";
 import { ArrowIcon } from "../components/ArrowIcon";
 import { HeroCoverDropper } from "../components/HeroCoverDropper";
+import { JournalImageDropper } from "../components/JournalImageDropper";
 import { useToast } from "../toast";
 import type { SiteContent, SiteEntry, SiteEntryKind, SiteSettings } from "../types";
 
@@ -11,7 +12,7 @@ const KINDS: { kind: SiteEntryKind; label: string; hint: string }[] = [
   { kind: "person", label: "People", hint: "Name, role, initials" },
   { kind: "voice", label: "Voices", hint: "Quote and attribution" },
   { kind: "award", label: "Recognition", hint: "Title and year" },
-  { kind: "journal", label: "Journal", hint: "Title, kicker, note, optional image URL" },
+  { kind: "journal", label: "Journal", hint: "Title, kicker, note, optional image" },
   { kind: "client", label: "Clients", hint: "A short label" },
   { kind: "faq", label: "Questions", hint: "Question and answer" },
 ];
@@ -165,6 +166,28 @@ export function SitePage() {
       />
 
       <section className="space-y-5">
+        <p className="text-[11px] tracking-[0.28em] text-gold uppercase">Hero copy</p>
+        <label className="block text-sm">
+          Kicker
+          <input className="admin-field" value={settings.heroKicker ?? ""} onChange={(e) => patchSettings({ heroKicker: e.target.value })} />
+        </label>
+        <label className="block text-sm">
+          Heading
+          <textarea
+            className="admin-field"
+            rows={3}
+            value={settings.heroHeading ?? ""}
+            onChange={(e) => patchSettings({ heroHeading: e.target.value })}
+          />
+          <span className="mt-2 block text-xs text-paper/40">One line per row. Wrap a line in *stars* for gold italic.</span>
+        </label>
+        <label className="block text-sm">
+          Line
+          <textarea className="admin-field" rows={3} value={settings.heroBody ?? ""} onChange={(e) => patchSettings({ heroBody: e.target.value })} />
+        </label>
+      </section>
+
+      <section className="space-y-5">
         <p className="text-[11px] tracking-[0.28em] text-gold uppercase">Studio</p>
         <label className="block text-sm">
           Heading
@@ -194,11 +217,21 @@ export function SitePage() {
           Copy
           <textarea className="admin-field" rows={3} value={settings.enquireBody} onChange={(e) => patchSettings({ enquireBody: e.target.value })} />
         </label>
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2">
           <label className="block text-sm">
-            Phone / WhatsApp
+            Phone
             <input className="admin-field" value={settings.phone} onChange={(e) => patchSettings({ phone: e.target.value })} />
-            <span className="mt-2 block text-xs text-paper/40">Used for Call and the Enquire WhatsApp button.</span>
+            <span className="mt-2 block text-xs text-paper/40">Used for Call.</span>
+          </label>
+          <label className="block text-sm">
+            WhatsApp
+            <input
+              className="admin-field"
+              value={settings.whatsapp ?? ""}
+              onChange={(e) => patchSettings({ whatsapp: e.target.value })}
+              placeholder="Leave blank to use the phone number"
+            />
+            <span className="mt-2 block text-xs text-paper/40">Enquire buttons open this number. Blank uses Phone.</span>
           </label>
           <label className="block text-sm">
             Email
@@ -251,10 +284,7 @@ export function SitePage() {
                     </label>
                   )}
                   {kind === "journal" && (
-                    <label className="block text-sm">
-                      Image URL
-                      <input className="admin-field" value={entry.imageUrl} onChange={(e) => patchEntry(entry.id, { imageUrl: e.target.value })} />
-                    </label>
+                    <JournalImageDropper url={entry.imageUrl} onChange={(imageUrl) => patchEntry(entry.id, { imageUrl })} />
                   )}
                   <div className="flex flex-wrap gap-4 text-sm">
                     <button type="button" className="text-gold/80 hover:text-gold disabled:text-paper/25" disabled={index === 0} onClick={() => moveEntry(entry.id, -1)}>

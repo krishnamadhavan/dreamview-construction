@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { AppError } from "../../lib/errors.js";
 import { saveSiteBody } from "./schemas.js";
-import { clearHeroImage, getSiteContent, saveSiteContent, setHeroImage } from "./service.js";
+import { clearHeroImage, getSiteContent, saveSiteContent, setHeroImage, uploadSiteImage } from "./service.js";
 
 function toPublic(content: Awaited<ReturnType<typeof getSiteContent>>) {
   return {
@@ -13,9 +13,13 @@ function toPublic(content: Awaited<ReturnType<typeof getSiteContent>>) {
       enquireHeading: content.settings.enquireHeading,
       enquireBody: content.settings.enquireBody,
       phone: content.settings.phone,
+      whatsapp: content.settings.whatsapp,
       email: content.settings.email,
       studioNote: content.settings.studioNote,
       heroImageUrl: content.settings.heroImageUrl,
+      heroKicker: content.settings.heroKicker,
+      heroHeading: content.settings.heroHeading,
+      heroBody: content.settings.heroBody,
     },
     entries: content.entries.map((entry) => ({
       id: entry.id,
@@ -53,5 +57,15 @@ export async function siteRoutes(app: FastifyInstance): Promise<void> {
 
   app.delete("/api/site/hero", { preHandler: [app.authenticate] }, async () => {
     return { site: toPublic(await clearHeroImage()) };
+  });
+
+  app.post("/api/site/image", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const file = await request.file();
+    if (!file) {
+      throw new AppError(400, "VALIDATION_ERROR", "Attach an image under the image field");
+    }
+    const buffer = await file.toBuffer();
+    const uploaded = await uploadSiteImage({ filename: file.filename, buffer });
+    return reply.code(201).send(uploaded);
   });
 }

@@ -79,10 +79,16 @@ export const siteSettings = pgTable("site_settings", {
   enquireHeading: text("enquire_heading").notNull().default("Tell us about the site."),
   enquireBody: text("enquire_body").notNull().default(""),
   phone: text("phone").notNull().default(""),
+  whatsapp: text("whatsapp").notNull().default(""),
   email: text("email").notNull().default(""),
   studioNote: text("studio_note").notNull().default("By appointment"),
   heroImageUrl: text("hero_image_url").notNull().default(""),
   heroImageKey: text("hero_image_key").notNull().default(""),
+  heroKicker: text("hero_kicker").notNull().default("Construction practice"),
+  heroHeading: text("hero_heading").notNull().default("We build\n*great*\nbuildings."),
+  heroBody: text("hero_body").notNull().default(
+    "Structure first, then the rooms people inhabit. One team from the first walk of the plot to handover.",
+  ),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

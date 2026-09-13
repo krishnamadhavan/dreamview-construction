@@ -6,6 +6,7 @@ export const createEnquiryBody = z.object({
   phone: z.string().trim().max(80).default(""),
   site: z.string().trim().min(1).max(200),
   brief: z.string().trim().min(1).max(8_000),
+  website_url: z.string().max(200).optional().default(""),
   company: z.string().max(200).optional().default(""),
 });
 
